@@ -177,7 +177,9 @@ async function harness(options = {}) {
       window.location.pathname = next.pathname; window.location.hash = next.hash;
     } },
     confirm: (text) => { calls.push(['confirm', text]); return h.confirm; },
-    alert() { throw new Error('Unexpected alert'); }
+    alert() { throw new Error('Unexpected alert'); },
+    listeners: {},
+    addEventListener(event, callback) { (this.listeners[event] ||= []).push(callback); }
   };
   class Session {
     constructor(config) { Object.assign(this, config); this.tracks = new Map(); this.connected = false; this.busy = false; this.status = 'idle'; this.caseId = null; this.audioBlocked = false; controllers.push(this); }
@@ -415,6 +417,35 @@ test('citizen reload renders two default tiles but does not connect or capture',
   assert.equal(h.app.state.currentCase.interviewStatus, 'active');
   assert.equal(h.$('[data-slot="statementLive"]', h.app.state.callRoot).textContent, '線上筆錄中');
   assert.equal(h.app.state.callRoot.querySelectorAll('.statement-marquee').length, 2);
+});
+
+test('leaving the page turns off the active statement marquee', async () => {
+  const h = await harness({ me: { case: caseItem('c') } });
+  await h.$('[data-action="joinCall"]', h.app.state.callRoot).fire('click'); await h.flush();
+  assert.equal(h.app.state.currentCase.interviewStatus, 'active');
+  await Promise.all(h.window.listeners.pagehide.map((callback) => callback()));
+  const statement = h.requests.filter((item) => item.url.endsWith('/statement')).at(-1);
+  assert.equal(JSON.parse(statement.body).active, false);
+  assert.equal(statement.keepalive, true);
+});
+
+test('a dropped citizen call turns the statement marquee off', async () => {
+  const sdk = mediaSDK();
+  const h = await harness({ sdk: sdk.sdk, me: { case: caseItem('a') } });
+  await h.$('[data-action="joinCall"]', h.app.state.callRoot).fire('click'); await h.flush();
+  assert.ok(h.app.state.callRoot.querySelectorAll('.statement-marquee').length >= 2);
+  await sdk.clients[0].emit('connection-state-change', 'DISCONNECTED', 'CONNECTED', 'NETWORK_ERROR');
+  await h.flush();
+  assert.equal(h.$('.statement-marquee', h.app.state.callRoot), null);
+  assert.equal(h.app.state.currentCase.interviewStatus, 'idle');
+  assert.equal(JSON.parse(h.requests.filter((item) => item.url.endsWith('/statement')).at(-1).body).active, false);
+});
+
+test('reopening the page turns off a statement marquee left active', async () => {
+  const h = await harness({ me: { case: caseItem('a', 'open', 'active') } });
+  assert.equal(h.$('.statement-marquee', h.app.state.callRoot), null);
+  assert.equal(h.app.state.currentCase.interviewStatus, 'idle');
+  assert.equal(JSON.parse(h.requests.filter((item) => item.url.endsWith('/statement')).at(-1).body).active, false);
 });
 
 test('citizen submit uses POST, publishes both; permissions error is inline and retry keeps workspace', async () => {

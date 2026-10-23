@@ -567,7 +567,7 @@ function getVideoSession() {
         requireOpenRoot(caseId, state.callRoot);
         return api(casePath(caseId, '/agora-token'), { method: 'POST' });
       },
-      onChange: () => renderMediaState(),
+      onChange: () => { renderMediaState(); void endStatementIfCallStopped(); },
       onError: (error) => { controllerErrors.add(error); renderMediaState(); }
     });
   }
@@ -740,7 +740,8 @@ function renderMediaState() {
     connected ? (placeholder?.hidden ? '已連線，正在接收對方視訊／語音。' : '已連線，等待對方視訊／語音。') : '尚未連線。';
   const recording = $('[data-slot="recordingNotice"]', root);
   if (recording) recording.textContent = connected ? '視訊筆錄進行中｜錄影尚未啟用' : '錄影尚未啟用';
-  const statementLive = open && state.currentCase.interviewStatus === 'active';
+  const citizenCallLive = Boolean(state.me?.user || (same && (session.connected || session.hasLocalMedia || ['connecting', 'reconnecting', 'disconnecting'].includes(session.status))));
+  const statementLive = open && state.currentCase.interviewStatus === 'active' && citizenCallLive;
   const statementStatus = $('[data-slot="statementLive"]', root);
   if (statementStatus && statementStatus.textContent !== (statementLive ? '線上筆錄中' : '')) {
     statementStatus.textContent = statementLive ? '線上筆錄中' : '';
@@ -858,6 +859,30 @@ async function disconnectCurrent() {
     (state.videoSession?.connected || state.currentCase?.interviewStatus === 'active');
   if (state.videoSession) await state.videoSession.disconnect();
   if (caseId && citizenActive) await updateStatementStatus(caseId, false);
+}
+
+let statementRelease = null;
+
+function endStatementIfCallStopped() {
+  const caseItem = state.currentCase;
+  const session = state.videoSession;
+  if (state.me?.user || !caseItem || caseItem.status === 'closed' || caseItem.interviewStatus !== 'active') return;
+  if (!session || session.caseId !== caseItem.id || session.connected || session.hasLocalMedia) return;
+  if (['connecting', 'reconnecting', 'disconnecting'].includes(session.status) || statementRelease) return;
+  const caseId = caseItem.id;
+  statementRelease = updateStatementStatus(caseId, false)
+    .catch((error) => { if (state.currentCase?.id === caseId) showMediaError(error); })
+    .finally(() => { statementRelease = null; });
+  return statementRelease;
+}
+
+function endStatementOnPageExit() {
+  const caseItem = state.currentCase;
+  if (state.me?.user || !caseItem || caseItem.status === 'closed' || caseItem.interviewStatus !== 'active') return undefined;
+  return fetch(casePath(caseItem.id, '/statement'), {
+    method: 'POST', credentials: 'same-origin', cache: 'no-store', keepalive: true,
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: false })
+  }).catch(() => {});
 }
 
 async function updateStatementStatus(caseId, active) {
@@ -1422,8 +1447,13 @@ async function boot() {
     await renderCitizenWorkspace(cases);
     startCitizenCasePolling();
     showNotice('已恢復案件工作區。鏡頭與麥克風尚未開啟，請按「開始線上筆錄」。');
+    if (state.currentCase?.interviewStatus === 'active' && state.currentCase.status !== 'closed') {
+      await updateStatementStatus(state.currentCase.id, false);
+    }
   }
 }
+
+window.addEventListener('pagehide', endStatementOnPageExit);
 
 const bootPromise = boot().catch((error) => {
   if (document.body.dataset.entry === 'citizen' && !['#staff', '#admin'].includes(window.location.hash)) showNotice(errorText(error), 'error');
