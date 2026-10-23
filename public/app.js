@@ -620,6 +620,7 @@ function renderMedia(root, caseItem) {
   root.innerHTML = `<div class="section-heading"><h2>線上筆錄</h2></div>
     <div class="media-grid"><div class="media-controls">
       <div data-slot="videoGrid" class="video-grid video-pair">
+        <p class="visually-hidden" data-slot="statementLive" role="status"></p>
         <div class="video-tile"><div data-slot="localVideoSlot" class="video-slot"><div data-slot="localPlayer" class="video-player"></div></div><div data-slot="localLabel" class="video-label">我方（未開啟鏡頭／麥克風）</div></div>
         <div data-slot="remotePlaceholder" class="video-tile"><div class="video-slot video-placeholder"><p>${staff ? '等待民眾傳送視訊' : '線上筆錄鏡頭啟動中'}</p></div><div class="video-label">對方（尚未傳送）</div></div>
       </div>
@@ -739,6 +740,12 @@ function renderMediaState() {
     connected ? (placeholder?.hidden ? '已連線，正在接收對方視訊／語音。' : '已連線，等待對方視訊／語音。') : '尚未連線。';
   const recording = $('[data-slot="recordingNotice"]', root);
   if (recording) recording.textContent = connected ? '視訊筆錄進行中｜錄影尚未啟用' : '錄影尚未啟用';
+  const statementLive = open && state.currentCase.interviewStatus === 'active';
+  const statementStatus = $('[data-slot="statementLive"]', root);
+  if (statementStatus && statementStatus.textContent !== (statementLive ? '線上筆錄中' : '')) {
+    statementStatus.textContent = statementLive ? '線上筆錄中' : '';
+  }
+  syncStatementMarquee(root, statementLive);
   const errorNode = $('[data-slot="mediaError"]', root);
   if (errorNode) { errorNode.textContent = error ? `${error} 請確認瀏覽器權限後重試；裝置可分別開關。` : ''; errorNode.hidden = !error; }
   for (const [action, kind, label] of [['toggleVideo', 'video', '鏡頭'], ['toggleAudio', 'audio', '麥克風']]) {
@@ -762,6 +769,31 @@ function renderMediaState() {
   const videoOn = Boolean(same && session.tracks.has('video'));
   const previewing = Boolean(cameraPreviewStream) && !videoOn;
   if (label) label.textContent = `我方（鏡頭${videoOn ? '已開啟' : previewing ? '預覽中' : '未開啟'}／麥克風${same && session.tracks.has('audio') ? '已開啟' : '未開啟'}）`;
+}
+
+function syncStatementMarquee(root, visible) {
+  const grid = $('[data-slot="videoGrid"]', root);
+  if (!grid) return;
+  for (const slot of grid.querySelectorAll('.video-slot')) {
+    const current = $('.statement-marquee', slot);
+    if (!visible) {
+      current?.remove();
+      continue;
+    }
+    if (current) continue;
+    const bar = document.createElement('div');
+    bar.className = 'statement-marquee';
+    bar.setAttribute('aria-hidden', 'true');
+    const track = document.createElement('div');
+    track.className = 'statement-marquee-track';
+    for (let index = 0; index < 8; index += 1) {
+      const item = document.createElement('span');
+      item.textContent = '線上筆錄中';
+      track.appendChild(item);
+    }
+    bar.appendChild(track);
+    slot.appendChild(bar);
+  }
 }
 
 function runMediaAction(caseId, root, operation) {

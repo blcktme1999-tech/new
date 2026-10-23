@@ -155,3 +155,5 @@ create policy priority_application_files_service_role_all on public.priority_app
 insert into storage.buckets (id, name, public)
 values ('report-videos', 'report-videos', true)
 on conflict (id) do update set public = excluded.public;
+
+notify pgrst, 'reload schema';

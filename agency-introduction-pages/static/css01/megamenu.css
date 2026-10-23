@@ -212,11 +212,14 @@
   }
     .menu > ul > li > ul {
   position: absolute;
-  max-height: 60vh;
-  overflow: scroll;
+  max-height: 70vh;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
   .menu > ul > li:hover > ul {
     display: flex !important;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
   .menu-mobile {
     display: none;

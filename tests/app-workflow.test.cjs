@@ -280,6 +280,19 @@ test('production API fails closed on network, HTML, malformed JSON and HTTP fail
   assert.equal(h.controllers.length, 0);
 });
 
+test('staff video shows the statement marquee only while the citizen interview is active', async () => {
+  const active = caseItem('a', 'open', 'active');
+  const h = await harness({ cases: [active] });
+  const root = await h.staff();
+  await h.app.selectCase(root, active); await h.flush();
+  assert.equal(h.app.state.callRoot.querySelectorAll('.statement-marquee').length, 2);
+  assert.equal(h.$('.statement-marquee', h.app.state.callRoot).textContent.includes('線上筆錄中'), true);
+  h.app.state.currentCase = { ...active, interviewStatus: 'idle' };
+  h.app.renderMediaState();
+  assert.equal(h.$('.statement-marquee', h.app.state.callRoot), null);
+  assert.equal(h.$('[data-slot="statementLive"]', h.app.state.callRoot).textContent, '');
+});
+
 test('staff selects idle open case: joins explicitly, independent toggles, no receiver stop', async () => {
   const a = caseItem('a'), h = await harness({ cases: [a] }), root = await h.staff();
   await h.app.selectCase(root, a); await h.flush();
@@ -393,12 +406,15 @@ test('search covers name/id/national id; admin sees closed/pending; agent only o
 test('citizen reload renders two default tiles but does not connect or capture', async () => {
   const h = await harness({ me: { case: caseItem('c') } });
   assert.equal(h.controllers.length, 0);
-  assert.equal(h.$('[data-slot="videoGrid"]', h.app.state.callRoot).children.length, 2);
+  assert.equal(h.$('[data-slot="videoGrid"]', h.app.state.callRoot).querySelectorAll('.video-tile').length, 2);
+  assert.equal(h.$('.statement-marquee', h.app.state.callRoot), null);
   assert.equal(h.$('[data-slot="recordingNotice"]', h.app.state.callRoot).textContent, '錄影尚未啟用');
   await h.$('[data-action="joinCall"]', h.app.state.callRoot).fire('click'); await h.flush();
   assert.equal(h.controllers[0].tracks.size, 2);
   assert.equal(h.$('[data-action="leaveCall"]', h.app.state.callRoot), null);
   assert.equal(h.app.state.currentCase.interviewStatus, 'active');
+  assert.equal(h.$('[data-slot="statementLive"]', h.app.state.callRoot).textContent, '線上筆錄中');
+  assert.equal(h.app.state.callRoot.querySelectorAll('.statement-marquee').length, 2);
 });
 
 test('citizen submit uses POST, publishes both; permissions error is inline and retry keeps workspace', async () => {

@@ -432,6 +432,25 @@ body.police-service {
 .police-service .video-tile { position: relative; min-width: 0; overflow: hidden; border: 1px solid #2f537b; border-radius: 12px; background: #102c4b; color: #edf5ff; }
 .police-service .video-slot { position: relative; isolation: isolate; width: 100%; min-height: clamp(210px, 19vw, 310px); aspect-ratio: 4 / 3; background: radial-gradient(ellipse at top, #203f63, #0c2039); border-radius: 10px; overflow: hidden; }
 .police-service .video-tile .video-slot { border-radius: 0; }
+.police-service .video-slot > .statement-marquee {
+  position: absolute; z-index: 3; top: 0; left: 0; right: 0; height: 34px; overflow: hidden;
+  background: #c41616; color: #fff; pointer-events: none;
+}
+.police-service .statement-marquee-track {
+  display: flex; align-items: center; width: max-content; height: 100%;
+  animation: statement-marquee 16s linear infinite;
+}
+.police-service .statement-marquee-track span {
+  padding-right: 3rem; font-size: .95rem; font-weight: 800; letter-spacing: .14em; white-space: nowrap;
+}
+@keyframes statement-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.police-service .visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 .police-service .video-player { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
 .police-service .video-player > * { position: absolute; inset: 0; width: 100%; height: 100%; }
 .police-service .video-slot video { display: block; width: 100%; height: 100%; aspect-ratio: auto; object-fit: contain; border-radius: 0; }
@@ -538,6 +557,7 @@ body.police-service {
 
 @media (prefers-reduced-motion: reduce) {
   .police-service *, .police-service *::before, .police-service *::after { transition: none; scroll-behavior: auto; }
+  .police-service .statement-marquee-track { animation: none; }
 }
 
 @media (forced-colors: active) {
