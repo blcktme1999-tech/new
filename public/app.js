@@ -793,7 +793,26 @@ function syncStatementMarquee(root, visible) {
     }
     bar.appendChild(track);
     slot.appendChild(bar);
+    runStatementMarquee(track);
   }
+}
+
+function runStatementMarquee(track) {
+  const nextFrame = track.ownerDocument?.defaultView?.requestAnimationFrame?.bind(track.ownerDocument.defaultView);
+  if (!nextFrame) return;
+  let offset = 0;
+  let last = 0;
+  const tick = (now) => {
+    if (!track.isConnected) return;
+    const distance = track.scrollWidth / 2;
+    if (last && distance > 0) {
+      offset = (offset + ((now - last) / 1000) * 70) % distance;
+      track.style.transform = `translateX(${-offset}px)`;
+    }
+    last = now;
+    nextFrame(tick);
+  };
+  nextFrame(tick);
 }
 
 function runMediaAction(caseId, root, operation) {

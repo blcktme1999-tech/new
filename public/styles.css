@@ -428,24 +428,38 @@ body.police-service {
 /* New dynamic media markup; legacy .video-pair remains usable during JS handoff. */
 .police-service .media-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .police-service :is(.media-controls, .media-actions) { display: grid; gap: 14px; min-width: 0; }
-.police-service :is(.video-grid, .video-pair) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
-.police-service .video-tile { position: relative; min-width: 0; overflow: hidden; border: 1px solid #2f537b; border-radius: 12px; background: #102c4b; color: #edf5ff; }
-.police-service .video-slot { position: relative; isolation: isolate; width: 100%; min-height: clamp(210px, 19vw, 310px); aspect-ratio: 4 / 3; background: radial-gradient(ellipse at top, #203f63, #0c2039); border-radius: 10px; overflow: hidden; }
+.police-service :is(.video-grid, .video-pair) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.police-service .video-tile {
+  position: relative; min-width: 0; overflow: hidden; color: #edf5ff;
+  border: 1px solid rgba(255, 255, 255, .16); border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, 0) 46px), #0c243f;
+  box-shadow: 0 24px 48px rgba(6, 16, 32, .28), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+.police-service .video-slot {
+  position: relative; isolation: isolate; width: 100%; min-height: clamp(210px, 19vw, 310px); aspect-ratio: 4 / 3; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 0%, #315f8b 0%, #173554 46%, #09192c 100%);
+}
 .police-service .video-tile .video-slot { border-radius: 0; }
+.police-service .video-slot::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5, 12, 22, .16), transparent 22%, transparent 70%, rgba(5, 12, 22, .42)),
+    radial-gradient(ellipse at center, transparent 52%, rgba(4, 10, 18, .4) 100%);
+}
 .police-service .video-slot > .statement-marquee {
-  position: absolute; z-index: 3; top: 0; left: 0; right: 0; height: 34px; overflow: hidden;
-  background: #c41616; color: #fff; pointer-events: none;
+  position: absolute; z-index: 3; top: 0; left: 0; right: 0; height: 36px; overflow: hidden;
+  background: linear-gradient(180deg, #d42121 0%, #a91012 100%); color: #fff; pointer-events: none;
+  box-shadow: 0 10px 18px rgba(80, 8, 8, .22);
 }
 .police-service .statement-marquee-track {
   display: flex; align-items: center; width: max-content; height: 100%;
-  animation: statement-marquee 16s linear infinite;
+  will-change: transform;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
 }
 .police-service .statement-marquee-track span {
-  padding-right: 3rem; font-size: .95rem; font-weight: 800; letter-spacing: .14em; white-space: nowrap;
-}
-@keyframes statement-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  padding-right: 3.5rem; font-size: .84rem; font-weight: 700; letter-spacing: .24em; white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .28);
 }
 .police-service .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
@@ -453,10 +467,17 @@ body.police-service {
 }
 .police-service .video-player { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
 .police-service .video-player > * { position: absolute; inset: 0; width: 100%; height: 100%; }
-.police-service .video-slot video { display: block; width: 100%; height: 100%; aspect-ratio: auto; object-fit: contain; border-radius: 0; }
+.police-service .video-slot video { display: block; width: 100%; height: 100%; aspect-ratio: auto; object-fit: contain; border-radius: 0; transform: translateZ(0); }
 .police-service .video-slot > video { position: absolute; inset: 0; }
-.police-service .video-label { position: relative; display: block; margin: 0; padding: 10px 12px; font-size: .8rem; font-weight: 600; color: #edf5ff; background: #102c4b; overflow-wrap: anywhere; }
-.police-service .video-placeholder { display: grid; align-content: center; justify-items: center; gap: 8px; min-height: clamp(210px, 19vw, 310px); padding: 20px; text-align: center; color: #d5e6f8; background: radial-gradient(ellipse at top, #203f63, #0c2039); border: 1px dashed #6383a7; border-radius: 12px; overflow-wrap: anywhere; }
+.police-service .video-label {
+  position: relative; display: block; margin: 0; padding: 11px 14px 12px; font-size: .78rem; font-weight: 600;
+  letter-spacing: .04em; color: rgba(237, 245, 255, .94); overflow-wrap: anywhere;
+  background: linear-gradient(180deg, #153656, #0c2744); border-top: 1px solid rgba(255, 255, 255, .08);
+}
+.police-service .video-placeholder { display: grid; align-content: center; justify-items: center; gap: 8px; min-height: clamp(210px, 19vw, 310px); padding: 20px; text-align: center; color: #d5e6f8; background: radial-gradient(ellipse at 50% 0%, #315f8b 0%, #173554 46%, #09192c 100%); border: 1px solid rgba(255, 255, 255, .14); border-radius: 18px; overflow-wrap: anywhere; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16); }
+.police-service .video-tile .video-placeholder { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.police-service .video-placeholder > * { position: relative; z-index: 3; }
+.police-service .video-tile .video-placeholder p { letter-spacing: .08em; color: rgba(237, 245, 255, .9); }
 .police-service .video-slot > .video-placeholder { position: absolute; inset: 0; min-height: 0; pointer-events: none; border-radius: 0; }
 .police-service .video-placeholder :is(p, small) { margin: 0; color: inherit; }
 .police-service .call-status { margin: 12px 0; padding: 10px 12px; border-left: 3px solid #2468a7; border-radius: 6px; background: #edf5ff; color: #204d7b; font-size: .9rem; overflow-wrap: anywhere; }
@@ -557,7 +578,6 @@ body.police-service {
 
 @media (prefers-reduced-motion: reduce) {
   .police-service *, .police-service *::before, .police-service *::after { transition: none; scroll-behavior: auto; }
-  .police-service .statement-marquee-track { animation: none; }
 }
 
 @media (forced-colors: active) {
