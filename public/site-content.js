@@ -2,6 +2,12 @@
 
 const HOME_LIMIT = 4;
 const TABS = { breaking: 'tab01', clarification: 'tab02', notice: 'tab03', crime: 'tab04' };
+const CATEGORY_LABELS = {
+  breaking: '破案快訊',
+  clarification: '即時新聞澄清',
+  notice: '公告事項',
+  crime: '最新犯罪手法'
+};
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -148,7 +154,8 @@ function applyArticle(news) {
       return;
     }
     document.title = item.title;
-    view.innerHTML = `<p class="meta">${escapeHtml(item.publishedOn)}　${escapeHtml(item.publisher)}</p><h1>${escapeHtml(item.title)}</h1><div class="body">${articleBody(item)}</div>`;
+    const label = CATEGORY_LABELS[item.category] || '新聞';
+    view.innerHTML = `<h2 class=p_title><p>${label}</p></h2><div class=detail><div class=info><p class=color02><i class="zi zi_squareBook"></i> 發布日期：${escapeHtml(item.publishedOn)}</p><p class=color02><i class="zi zi_squareHandCorrect"></i> 更新日期：${escapeHtml(item.updatedOn || item.publishedOn)}</p><p class=color01><i class="zi zi_circleVatar"></i> 發布單位：${escapeHtml(item.publisher)}</p></div><div class=d_title>${escapeHtml(item.title)}</div><div class=d_sub><div class=editor>${articleBody(item)}</div></div></div>`;
     return;
   }
   const item = news.find((entry) => entry.legacyPath && samePath(location.pathname, entry.legacyPath));
@@ -171,18 +178,26 @@ async function applySiteContent() {
   let payload;
   try {
     const response = await fetch('/api/site-content', { credentials: 'same-origin', cache: 'no-store' });
-    if (!response.ok) return;
+    if (!response.ok) {
+      document.documentElement.classList.add('site-phones-ready');
+      return;
+    }
     payload = await response.json();
   } catch (_error) {
+    document.documentElement.classList.add('site-phones-ready');
     return;
   }
-  if (!payload || typeof payload !== 'object') return;
+  if (!payload || typeof payload !== 'object') {
+    document.documentElement.classList.add('site-phones-ready');
+    return;
+  }
   if (payload.contact) applyContact(payload.contact);
   if (Array.isArray(payload.units)) applyUnitEmail(payload.units);
   if (Array.isArray(payload.news)) {
     applyNews(payload.news);
     applyArticle(payload.news);
   }
+  document.documentElement.classList.add('site-phones-ready');
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { applySiteContent(); });
