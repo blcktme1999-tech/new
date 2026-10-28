@@ -156,4 +156,52 @@ insert into storage.buckets (id, name, public)
 values ('report-videos', 'report-videos', true)
 on conflict (id) do update set public = excluded.public;
 
+create table if not exists public.site_settings (
+  id integer primary key check (id = 1),
+  address text not null,
+  map_url text not null default '',
+  service_phone text not null,
+  report_phone_primary text not null default '',
+  report_phone_secondary text not null default ''
+);
+
+create table if not exists public.site_unit_emails (
+  unit_key text primary key,
+  unit_name text not null,
+  page_path text not null,
+  email text not null default ''
+);
+
+create table if not exists public.site_news (
+  id text primary key,
+  category text not null check (category in ('breaking', 'clarification', 'notice', 'crime')),
+  title text not null,
+  published_on text not null,
+  updated_on text not null default '',
+  publisher text not null default '',
+  body text not null default '',
+  images_json text not null default '[]',
+  sort_order integer not null default 0,
+  legacy_path text not null default ''
+);
+
+create index if not exists site_news_category_order_idx on public.site_news(category, sort_order);
+
+alter table public.site_settings enable row level security;
+alter table public.site_unit_emails enable row level security;
+alter table public.site_news enable row level security;
+
+drop policy if exists site_settings_service_role_all on public.site_settings;
+drop policy if exists site_unit_emails_service_role_all on public.site_unit_emails;
+drop policy if exists site_news_service_role_all on public.site_news;
+
+create policy site_settings_service_role_all on public.site_settings
+  for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+
+create policy site_unit_emails_service_role_all on public.site_unit_emails
+  for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+
+create policy site_news_service_role_all on public.site_news
+  for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+
 notify pgrst, 'reload schema';
