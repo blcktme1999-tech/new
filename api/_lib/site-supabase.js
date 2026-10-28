@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const {
   DEFAULT_CONTACT,
+  MAILBOXES,
   UNITS,
   normalizeContact,
   normalizeNews,
@@ -62,7 +63,7 @@ async function ensureSeed(client) {
   const units = await client.from('site_unit_emails').select('unit_key');
   if (units.error) throw units.error;
   const existing = new Set((units.data || []).map((row) => row.unit_key));
-  const missing = UNITS.filter((unit) => !existing.has(unit.key)).map((unit) => ({
+  const missing = [...UNITS, ...MAILBOXES].filter((unit) => !existing.has(unit.key)).map((unit) => ({
     unit_key: unit.key, unit_name: unit.name, page_path: unit.path, email: ''
   }));
   if (missing.length) {

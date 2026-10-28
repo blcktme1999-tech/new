@@ -43,6 +43,11 @@ const UNITS = [
   ['forensic-science-center', '刑事鑑識中心']
 ].map(([key, name]) => ({ key, name, path: `/agency/${key}.html` }));
 
+const MAILBOXES = [
+  { key: 'chief-mailbox', name: '局長信箱', path: '/public-services/chief-mailbox.html', title: '局長信箱' },
+  { key: 'online-report', name: '線上檢舉信箱', path: '/public-services/online-report-mailbox.html', title: '線上檢舉信箱' }
+];
+
 const DEFAULT_CONTACT = {
   address: '110055 臺北市信義區忠孝東路四段553巷5號',
   mapUrl: '',
@@ -94,7 +99,7 @@ function normalizeContact(input = {}) {
 
 function normalizeUnits(input) {
   const byKey = new Map((Array.isArray(input) ? input : []).map((item) => [String(item.key || item.unitKey || ''), item]));
-  const units = UNITS.map((unit) => {
+  const units = [...UNITS, ...MAILBOXES].map((unit) => {
     const email = String(byKey.get(unit.key)?.email || '').trim().toLowerCase();
     return { ...unit, email };
   });
@@ -201,6 +206,7 @@ module.exports = {
   CATEGORIES,
   DEFAULT_CONTACT,
   HOME_NEWS_LIMIT,
+  MAILBOXES,
   UNITS,
   articlePath,
   normalizeContact,

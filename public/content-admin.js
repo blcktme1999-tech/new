@@ -41,8 +41,15 @@ function render() {
   $('#servicePhone').value = content.contact.servicePhone || '';
   $('#reportPhonePrimary').value = content.contact.reportPhones?.[0] || '';
   $('#reportPhoneSecondary').value = content.contact.reportPhones?.[1] || '';
+  const mailboxes = [
+    { key: 'chief-mailbox', name: '局長信箱' },
+    { key: 'online-report', name: '線上檢舉信箱' }
+  ];
   const emails = $('#unitEmails');
-  emails.innerHTML = content.units.map((unit) => `<label>${escapeHtml(unit.name)}<input data-unit="${escapeHtml(unit.key)}" type="email" value="${escapeHtml(unit.email)}" placeholder="name@example.com" autocomplete="off"></label>`).join('');
+  emails.innerHTML = mailboxes.map((mailbox) => {
+    const saved = content.units.find((unit) => unit.key === mailbox.key);
+    return `<label>${escapeHtml(mailbox.name)}<input data-unit="${escapeHtml(mailbox.key)}" type="email" value="${escapeHtml(saved?.email || '')}" placeholder="name@example.com" autocomplete="off"></label>`;
+  }).join('');
   const news = $('#newsBoard');
   news.innerHTML = content.categories ? '' : '';
   const categories = [

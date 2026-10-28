@@ -89,22 +89,28 @@ function applyContact(contact) {
   document.documentElement.classList.add('site-phones-ready');
 }
 
-function applyUnitEmail(units) {
-  const unit = units.find((item) => samePath(location.pathname, item.path));
-  let slot = document.querySelector('[data-site-unit-email]');
-  if (!unit?.email) {
-    slot?.remove();
-    return;
-  }
-  if (!slot) {
-    slot = document.createElement('p');
-    slot.dataset.siteUnitEmail = '1';
-    slot.style.cssText = 'margin:16px;padding:12px 16px;background:#f4f7fb;border-left:4px solid #0b4f8a;color:#16325c;font-size:16px;line-height:1.6;';
-    const footer = document.querySelector('footer');
-    if (footer?.parentNode) footer.parentNode.insertBefore(slot, footer);
-    else document.body.appendChild(slot);
-  }
-  slot.innerHTML = `電子信箱：<a href="mailto:${escapeHtml(unit.email)}">${escapeHtml(unit.email)}</a>`;
+const MAILBOXES = [
+  { key: 'chief-mailbox', title: '局長信箱' },
+  { key: 'online-report', title: '線上檢舉信箱' }
+];
+
+function applyMailboxes(units) {
+  document.querySelectorAll('[data-site-mailbox]').forEach((node) => node.remove());
+  MAILBOXES.forEach((mailbox) => {
+    const email = units.find((item) => item.key === mailbox.key)?.email;
+    if (!email) return;
+    document.querySelectorAll('a').forEach((link) => {
+      const label = `${link.getAttribute('title') || ''} ${link.textContent || ''}`;
+      if (!label.includes(mailbox.title)) return;
+      if (link.nextElementSibling?.dataset?.siteMailbox === mailbox.key) return;
+      const line = document.createElement('a');
+      line.dataset.siteMailbox = mailbox.key;
+      line.href = `mailto:${email}`;
+      line.textContent = email;
+      line.style.cssText = 'display:block;margin-top:2px;font-size:13px;line-height:1.4;color:inherit;opacity:.8;';
+      link.insertAdjacentElement('afterend', line);
+    });
+  });
 }
 
 function homeItem(item) {
@@ -188,7 +194,7 @@ async function applySiteContent() {
   }
   if (!payload || typeof payload !== 'object') return;
   if (payload.contact) applyContact(payload.contact);
-  if (Array.isArray(payload.units)) applyUnitEmail(payload.units);
+  if (Array.isArray(payload.units)) applyMailboxes(payload.units);
   if (Array.isArray(payload.news)) {
     applyNews(payload.news);
     applyArticle(payload.news);

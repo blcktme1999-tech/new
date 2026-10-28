@@ -2,6 +2,7 @@
 
 const {
   DEFAULT_CONTACT,
+  MAILBOXES,
   UNITS,
   normalizeContact,
   normalizeNews,
@@ -47,7 +48,7 @@ function ensureSiteTables(db) {
       VALUES (1, ?, '', ?, ?, ?)`).run(DEFAULT_CONTACT.address, DEFAULT_CONTACT.servicePhone, DEFAULT_CONTACT.reportPhones[0], DEFAULT_CONTACT.reportPhones[1]);
   }
   const insertUnit = db.prepare('INSERT OR IGNORE INTO site_unit_emails (unit_key, unit_name, page_path, email) VALUES (?, ?, ?, \'\')');
-  for (const unit of UNITS) insertUnit.run(unit.key, unit.name, unit.path);
+  for (const unit of [...UNITS, ...MAILBOXES]) insertUnit.run(unit.key, unit.name, unit.path);
   if (!db.prepare('SELECT id FROM site_news LIMIT 1').get()) {
     const insertNews = db.prepare(`INSERT INTO site_news
       (id, category, title, published_on, updated_on, publisher, body, images_json, sort_order, legacy_path)
