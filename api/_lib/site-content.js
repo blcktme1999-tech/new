@@ -44,8 +44,8 @@ const UNITS = [
 ].map(([key, name]) => ({ key, name, path: `/agency/${key}.html` }));
 
 const MAILBOXES = [
-  { key: 'chief-mailbox', name: '局長信箱', path: '/public-services/chief-mailbox.html', title: '局長信箱' },
-  { key: 'online-report', name: '線上檢舉信箱', path: '/public-services/online-report-mailbox.html', title: '線上檢舉信箱' }
+  { key: 'chief-mailbox', name: '局長信箱', path: '/public-services/chief-feedback.html', title: '局長信箱' },
+  { key: 'online-report', name: '線上檢舉信箱', path: '/public-services/online-report-feedback.html', title: '線上檢舉信箱' }
 ];
 
 const DEFAULT_CONTACT = {
