@@ -89,21 +89,39 @@ function applyContact(contact) {
   document.documentElement.classList.add('site-phones-ready');
 }
 
-const FEEDBACK_MAILBOXES = [
-  { key: 'chief-mailbox', marker: 'chief-feedback' },
-  { key: 'online-report', marker: 'online-report-feedback' }
-];
+function feedbackMailbox(units) {
+  const path = location.pathname;
+  if (path.includes('chief-feedback')) return units.find((item) => item.key === 'chief-mailbox');
+  if (path.includes('online-report-feedback')) return units.find((item) => item.key === 'online-report');
+  return null;
+}
 
 function applyMailboxes(units) {
-  FEEDBACK_MAILBOXES.forEach((mailbox) => {
-    const email = units.find((item) => item.key === mailbox.key)?.email;
-    if (!email) return;
-    document.querySelectorAll('a').forEach((link) => {
-      const href = link.getAttribute('href') || '';
-      if (!href.includes(mailbox.marker)) return;
-      link.href = `mailto:${email}`;
-      link.removeAttribute('target');
-    });
+  const mailbox = feedbackMailbox(units);
+  if (!mailbox) return;
+  const button = document.querySelector('a[title="下一步"]');
+  const agreed = document.querySelector('#a01');
+  if (!button || !agreed || button.dataset.siteNextBound === '1') return;
+  button.dataset.siteNextBound = '1';
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    const form = button.closest('form');
+    let slot = document.querySelector('[data-site-feedback-email]');
+    if (!slot) {
+      slot = document.createElement('div');
+      slot.dataset.siteFeedbackEmail = '1';
+      slot.style.cssText = 'margin:28px auto 8px;max-width:760px;padding:22px 18px;border:1px solid #c5d7ea;background:#f4f8fc;text-align:center;font-size:20px;line-height:1.6;color:#16325c;';
+      form?.insertAdjacentElement('afterend', slot);
+    }
+    if (!agreed.checked) {
+      slot.textContent = '請先勾選「我已閱讀並同意個人資料使用保護說明」';
+      return;
+    }
+    if (!mailbox.email) {
+      slot.textContent = '尚未設定信箱';
+      return;
+    }
+    slot.innerHTML = `電子信箱：<a href="mailto:${escapeHtml(mailbox.email)}">${escapeHtml(mailbox.email)}</a>`;
   });
 }
 
