@@ -84,6 +84,9 @@ function applyContact(contact) {
       link.href = phoneHref(phone);
     });
   });
+  const service = document.querySelector('[data-site-phone="service"]');
+  if (service && contact.servicePhone) service.textContent = contact.servicePhone;
+  document.documentElement.classList.add('site-phones-ready');
 }
 
 function applyUnitEmail(units) {
