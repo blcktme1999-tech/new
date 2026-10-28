@@ -204,6 +204,10 @@ function applyArticle(news) {
   if (body) body.innerHTML = articleBody(item);
 }
 
+function revealNews() {
+  document.documentElement.classList.add('site-news-ready');
+}
+
 async function applySiteContent() {
   let payload;
   try {
@@ -212,6 +216,8 @@ async function applySiteContent() {
     payload = await response.json();
   } catch (_error) {
     return;
+  } finally {
+    if (!payload) revealNews();
   }
   if (!payload || typeof payload !== 'object') return;
   if (payload.contact) applyContact(payload.contact);
@@ -220,6 +226,7 @@ async function applySiteContent() {
     applyNews(payload.news);
     applyArticle(payload.news);
   }
+  revealNews();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { applySiteContent(); });
