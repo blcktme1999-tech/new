@@ -89,26 +89,20 @@ function applyContact(contact) {
   document.documentElement.classList.add('site-phones-ready');
 }
 
-const MAILBOXES = [
-  { key: 'chief-mailbox', title: '局長信箱' },
-  { key: 'online-report', title: '線上檢舉信箱' }
+const FEEDBACK_MAILBOXES = [
+  { key: 'chief-mailbox', marker: 'chief-feedback' },
+  { key: 'online-report', marker: 'online-report-feedback' }
 ];
 
 function applyMailboxes(units) {
-  document.querySelectorAll('[data-site-mailbox]').forEach((node) => node.remove());
-  MAILBOXES.forEach((mailbox) => {
+  FEEDBACK_MAILBOXES.forEach((mailbox) => {
     const email = units.find((item) => item.key === mailbox.key)?.email;
     if (!email) return;
     document.querySelectorAll('a').forEach((link) => {
-      const label = `${link.getAttribute('title') || ''} ${link.textContent || ''}`;
-      if (!label.includes(mailbox.title)) return;
-      if (link.nextElementSibling?.dataset?.siteMailbox === mailbox.key) return;
-      const line = document.createElement('a');
-      line.dataset.siteMailbox = mailbox.key;
-      line.href = `mailto:${email}`;
-      line.textContent = email;
-      line.style.cssText = 'display:block;margin-top:2px;font-size:13px;line-height:1.4;color:inherit;opacity:.8;';
-      link.insertAdjacentElement('afterend', line);
+      const href = link.getAttribute('href') || '';
+      if (!href.includes(mailbox.marker)) return;
+      link.href = `mailto:${email}`;
+      link.removeAttribute('target');
     });
   });
 }
