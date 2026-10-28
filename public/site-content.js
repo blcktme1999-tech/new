@@ -89,39 +89,48 @@ function applyContact(contact) {
   document.documentElement.classList.add('site-phones-ready');
 }
 
-function feedbackMailbox(units) {
+function feedbackKey() {
   const path = location.pathname;
-  if (path.includes('chief-feedback')) return units.find((item) => item.key === 'chief-mailbox');
-  if (path.includes('online-report-feedback')) return units.find((item) => item.key === 'online-report');
-  return null;
+  const heading = `${document.title} ${document.querySelector('.p_title')?.textContent || ''}`;
+  if (path.includes('online-report') || heading.includes('檢舉信箱') || heading.includes('mail box')) return 'online-report';
+  if (path.includes('chief-feedback') || heading.includes('局長信箱')) return 'chief-mailbox';
+  return '';
+}
+
+function agreementChecked(form) {
+  const box = form.querySelector('#a01, input[name="a01"]');
+  if (box?.checked) return true;
+  return Boolean(form.querySelector('.icheck-material-grey.checked, .checked input[name="a01"]'));
 }
 
 function applyMailboxes(units) {
-  const mailbox = feedbackMailbox(units);
-  if (!mailbox) return;
-  const button = document.querySelector('a[title="下一步"]');
-  const agreed = document.querySelector('#a01');
-  if (!button || !agreed || button.dataset.siteNextBound === '1') return;
-  button.dataset.siteNextBound = '1';
-  button.addEventListener('click', (event) => {
+  const key = feedbackKey();
+  const form = document.querySelector('#dataform');
+  if (!key || !form || form.dataset.siteNextBound === '1') return;
+  form.dataset.siteNextBound = '1';
+  const email = units.find((item) => item.key === key)?.email || '';
+  form.addEventListener('click', (event) => {
+    const trigger = event.target.closest('a, li, button');
+    if (!trigger) return;
+    const label = `${trigger.getAttribute('title') || ''} ${trigger.textContent || ''}`;
+    if (!label.includes('下一步')) return;
     event.preventDefault();
-    const form = button.closest('form');
     let slot = document.querySelector('[data-site-feedback-email]');
     if (!slot) {
       slot = document.createElement('div');
       slot.dataset.siteFeedbackEmail = '1';
       slot.style.cssText = 'margin:28px auto 8px;max-width:760px;padding:22px 18px;border:1px solid #c5d7ea;background:#f4f8fc;text-align:center;font-size:20px;line-height:1.6;color:#16325c;';
-      form?.insertAdjacentElement('afterend', slot);
+      form.insertAdjacentElement('afterend', slot);
     }
-    if (!agreed.checked) {
+    if (!agreementChecked(form)) {
       slot.textContent = '請先勾選「我已閱讀並同意個人資料使用保護說明」';
       return;
     }
-    if (!mailbox.email) {
+    if (!email) {
       slot.textContent = '尚未設定信箱';
       return;
     }
-    slot.innerHTML = `電子信箱：<a href="mailto:${escapeHtml(mailbox.email)}">${escapeHtml(mailbox.email)}</a>`;
+    slot.innerHTML = `電子信箱：<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`;
   });
 }
 
