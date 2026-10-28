@@ -60,7 +60,7 @@ function applyContact(contact) {
     const text = node.textContent || '';
     if (text.length > 180) return;
     if (/地址\s*[:：]/.test(text)) node.textContent = text.replace(/地址\s*[:：][^\n]*/, `地址：${contact.address}`);
-    if (/服務電話\s*[:：]/.test(text) && !/檢舉/.test(text)) {
+    if (/服務電話\s*[:：]/.test(text) && !/檢舉/.test(text) && !node.parentElement?.querySelector('[data-site-phone="service"]')) {
       const label = /偵防/.test(text) ? '偵防中心服務電話' : '服務電話';
       node.textContent = text.replace(/((?:偵防中心)?服務電話)\s*[:：][^\n]*/, `${label}：${contact.servicePhone}`);
     }
@@ -178,26 +178,18 @@ async function applySiteContent() {
   let payload;
   try {
     const response = await fetch('/api/site-content', { credentials: 'same-origin', cache: 'no-store' });
-    if (!response.ok) {
-      document.documentElement.classList.add('site-phones-ready');
-      return;
-    }
+    if (!response.ok) return;
     payload = await response.json();
   } catch (_error) {
-    document.documentElement.classList.add('site-phones-ready');
     return;
   }
-  if (!payload || typeof payload !== 'object') {
-    document.documentElement.classList.add('site-phones-ready');
-    return;
-  }
+  if (!payload || typeof payload !== 'object') return;
   if (payload.contact) applyContact(payload.contact);
   if (Array.isArray(payload.units)) applyUnitEmail(payload.units);
   if (Array.isArray(payload.news)) {
     applyNews(payload.news);
     applyArticle(payload.news);
   }
-  document.documentElement.classList.add('site-phones-ready');
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { applySiteContent(); });

@@ -341,6 +341,14 @@ function contentAdmin(req, res) {
   return true;
 }
 
+app.get('/api/site-phones', (_req, res) => {
+  const contact = readSite(db).contact;
+  const payload = { servicePhone: contact.servicePhone, reportPhones: contact.reportPhones };
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.send(`window.__SITE_PHONES=${JSON.stringify(payload).replace(/</g, '\\u003c')};`);
+});
+
 app.get('/api/site-content', (_req, res) => {
   res.json(readSite(db));
 });
