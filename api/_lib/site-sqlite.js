@@ -2,13 +2,16 @@
 
 const {
   DEFAULT_CONTACT,
+  DEFAULT_POSTERS,
   MAILBOXES,
   UNITS,
   normalizeContact,
   normalizeNews,
+  normalizePosters,
   normalizeUnits,
   publicContact,
   publicNews,
+  publicPoster,
   publicUnit,
   reorderCategory,
   seedNewsRows
@@ -42,6 +45,11 @@ function ensureSiteTables(db) {
       sort_order INTEGER NOT NULL DEFAULT 0,
       legacy_path TEXT NOT NULL DEFAULT ''
     );
+    CREATE TABLE IF NOT EXISTS site_posters (
+      id TEXT PRIMARY KEY,
+      image_url TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
   `);
   if (!db.prepare('SELECT id FROM site_settings WHERE id = 1').get()) {
     db.prepare(`INSERT INTO site_settings (id, address, map_url, service_phone, report_phone_primary, report_phone_secondary)
@@ -65,7 +73,20 @@ function readSite(db) {
   const units = db.prepare('SELECT * FROM site_unit_emails ORDER BY unit_name').all().map(publicUnit);
   const orderedUnits = UNITS.map((unit) => units.find((item) => item.key === unit.key) || publicUnit(unit));
   const news = db.prepare('SELECT * FROM site_news ORDER BY sort_order ASC, id ASC').all().map(publicNews);
-  return { contact: publicContact(settings), units: orderedUnits, news };
+  const posterRows = db.prepare('SELECT * FROM site_posters ORDER BY sort_order ASC, id ASC').all().map(publicPoster).filter((item) => item.url);
+  return { contact: publicContact(settings), units: orderedUnits, news, posters: posterRows.length ? posterRows : DEFAULT_POSTERS.map((item) => ({ ...item })) };
+}
+
+function savePosters(db, body) {
+  const result = normalizePosters(body.posters);
+  if (result.error) return { status: 400, error: result.error };
+  const insert = db.prepare('INSERT INTO site_posters (id, image_url, sort_order) VALUES (?, ?, ?)');
+  const save = db.transaction(() => {
+    db.prepare('DELETE FROM site_posters').run();
+    result.posters.forEach((item, index) => insert.run(id(), item.url, index));
+  });
+  save();
+  return { status: 200, payload: readSite(db) };
 }
 
 function saveContact(db, body) {
@@ -130,4 +151,4 @@ function id() {
   return require('crypto').randomUUID();
 }
 
-module.exports = { ensureSiteTables, mutateNews, readSite, saveContact };
+module.exports = { ensureSiteTables, mutateNews, readSite, saveContact, savePosters };

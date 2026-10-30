@@ -22,7 +22,7 @@
   <main>
     <section id="loginPanel" class="card">
       <h2>管理員登入</h2>
-      <p>使用案件管理的管理員帳號。這個頁面只改民眾看到的聯絡資料和新聞。</p>
+      <p>使用案件管理的管理員帳號。這個頁面可改民眾看到的聯絡資料、新聞和主頁橫幅。</p>
       <form id="loginForm">
         <label>帳號<input id="username" name="username" autocomplete="username" required></label>
         <label>密碼<input id="password" name="password" type="password" autocomplete="current-password" required></label>
@@ -41,6 +41,14 @@
         <p>進入反映意見頁，勾選同意並按下一步後，會顯示這裡填的信箱。</p>
         <div id="unitEmails" class="units"></div>
         <button type="submit">儲存聯絡資料</button>
+      </form>
+      <form id="posterForm" class="card">
+        <h2>主頁橫幅</h2>
+        <p>上傳、刪除、換圖和調整順序後，按一次儲存，主頁會立刻整組更新。至少要留一張。圖片會完整顯示，橫幅高度跟著每一張改變。</p>
+        <ol id="posterList" class="poster-list"></ol>
+        <label>新增圖片<input id="posterFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+        <input id="posterReplace" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+        <button type="submit">儲存橫幅</button>
       </form>
       <section class="card">
         <h2>新聞</h2>

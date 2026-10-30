@@ -1,6 +1,7 @@
 'use strict';
 
-const state = { content: null, editing: null, images: [] };
+const state = { content: null, editing: null, images: [], posters: [], replacingPoster: null };
+const MAX_POSTERS = 30;
 const $ = (selector, root = document) => root.querySelector(selector);
 
 async function api(path, options = {}) {
@@ -63,6 +64,18 @@ function render() {
     const rows = items.map((item, index) => `<li><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.publishedOn)}　${index < 4 ? '首頁' : '列表後面'}</span></div><div class="row-actions"><button type="button" data-move="up" data-id="${escapeHtml(item.id)}">上移</button><button type="button" data-move="down" data-id="${escapeHtml(item.id)}">下移</button><button type="button" data-edit="${escapeHtml(item.id)}">編輯</button><button type="button" data-delete="${escapeHtml(item.id)}">刪除</button></div></li>`).join('');
     return `<section class="news-column"><header><h2>${label}</h2><button type="button" data-add="${key}">新增</button></header><ol>${rows || '<li class="empty">這個分類還沒有新聞</li>'}</ol></section>`;
   }).join('');
+  renderPosters();
+}
+
+function renderPosters() {
+  const list = $('#posterList');
+  if (!list) return;
+  const last = state.posters.length <= 1;
+  list.innerHTML = state.posters.map((item, index) => `<li><img src="${escapeHtml(item.url)}" alt=""><div class="row-actions"><button type="button" data-poster-move="up" data-index="${index}" ${index === 0 ? 'disabled' : ''}>上移</button><button type="button" data-poster-move="down" data-index="${index}" ${index === state.posters.length - 1 ? 'disabled' : ''}>下移</button><button type="button" data-poster-replace="${index}">換圖</button><button type="button" data-poster-delete="${index}" ${last ? 'disabled' : ''}>刪除</button></div></li>`).join('') || '<li class="empty">至少要留一張橫幅</li>';
+}
+
+function rememberPosters(content) {
+  state.posters = (content.posters || []).map((item) => ({ id: item.id, url: item.url }));
 }
 
 function openEditor(item) {
@@ -86,7 +99,23 @@ function renderImages() {
 
 async function loadContent() {
   state.content = await api('/api/site-content');
+  rememberPosters(state.content);
   render();
+}
+
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('無法讀取圖片'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPoster(file) {
+  const dataUrl = await readImageFile(file);
+  const result = await api('/api/site-posters', { method: 'POST', body: JSON.stringify({ action: 'image', dataUrl }) });
+  return result.url;
 }
 
 async function saveContact(event) {
@@ -118,12 +147,7 @@ async function newsAction(body) {
 
 async function uploadImages(files) {
   for (const file of files) {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('無法讀取圖片'));
-      reader.readAsDataURL(file);
-    });
+    const dataUrl = await readImageFile(file);
     const result = await api('/api/site-news', { method: 'POST', body: JSON.stringify({ action: 'image', dataUrl }) });
     state.images.push(result.url);
   }
@@ -153,6 +177,73 @@ $('#logoutButton').addEventListener('click', async () => {
 });
 
 $('#contactForm').addEventListener('submit', saveContact);
+$('#posterForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!state.posters.length) return status('至少要留一張橫幅', true);
+  status('儲存中…');
+  try {
+    state.content = await api('/api/site-posters', { method: 'POST', body: JSON.stringify({ action: 'save', posters: state.posters.map((item) => item.url) }) });
+    rememberPosters(state.content);
+    render();
+    status('主頁橫幅已更新');
+  } catch (error) {
+    status(error.message, true);
+  }
+});
+$('#posterList').addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button || button.disabled) return;
+  const index = Number(button.dataset.index ?? button.dataset.posterReplace ?? button.dataset.posterDelete);
+  if (button.dataset.posterMove) {
+    const target = index + (button.dataset.posterMove === 'up' ? -1 : 1);
+    if (target < 0 || target >= state.posters.length) return;
+    const [item] = state.posters.splice(index, 1);
+    state.posters.splice(target, 0, item);
+    renderPosters();
+    status('橫幅已調整，按儲存後才會更新主頁');
+    return;
+  }
+  if (button.dataset.posterDelete != null) {
+    if (state.posters.length <= 1) return;
+    state.posters.splice(index, 1);
+    renderPosters();
+    status('橫幅已調整，按儲存後才會更新主頁');
+    return;
+  }
+  if (button.dataset.posterReplace != null) {
+    state.replacingPoster = index;
+    $('#posterReplace').click();
+  }
+});
+$('#posterFiles').addEventListener('change', async (event) => {
+  const files = [...event.target.files];
+  event.target.value = '';
+  if (!files.length) return;
+  if (state.posters.length + files.length > MAX_POSTERS) return status(`橫幅最多 ${MAX_POSTERS} 張`, true);
+  try {
+    status('上傳圖片中…');
+    for (const file of files) state.posters.push({ id: '', url: await uploadPoster(file) });
+    renderPosters();
+    status('圖片已加入，按儲存後才會更新主頁');
+  } catch (error) {
+    status(error.message, true);
+  }
+});
+$('#posterReplace').addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  const index = state.replacingPoster;
+  event.target.value = '';
+  state.replacingPoster = null;
+  if (!file || index == null || !state.posters[index]) return;
+  try {
+    status('上傳圖片中…');
+    state.posters[index] = { id: state.posters[index].id, url: await uploadPoster(file) };
+    renderPosters();
+    status('圖片已換上，按儲存後才會更新主頁');
+  } catch (error) {
+    status(error.message, true);
+  }
+});
 $('#newsBoard').addEventListener('click', async (event) => {
   const button = event.target.closest('button');
   if (!button) return;

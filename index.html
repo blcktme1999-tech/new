@@ -298,6 +298,32 @@
 <div class="banner home-poster" aria-label="首頁橫幅">
 <img class="is-active" src="/public/home-posters/hero.jpg" alt="We Do Better Than Great">
 </div>
+<script>
+window.startHomePoster = function () {
+  var root = document.querySelector('.home-poster');
+  if (!root) return;
+  var slides = Array.prototype.slice.call(root.querySelectorAll('img'));
+  var dots = Array.prototype.slice.call(root.querySelectorAll('.home-poster-dots button'));
+  if (!slides.length) return;
+  var index = Math.max(0, slides.findIndex(function (img) { return img.classList.contains('is-active'); }));
+  function show(next) {
+    index = (next + slides.length) % slides.length;
+    slides.forEach(function (img, i) { img.classList.toggle('is-active', i === index); });
+    dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === index); });
+  }
+  clearInterval(window.__homePosterTimer);
+  if (slides.length > 1) window.__homePosterTimer = setInterval(function () { show(index + 1); }, 5000);
+  dots.forEach(function (dot, i) {
+    dot.onclick = function () {
+      show(i);
+      clearInterval(window.__homePosterTimer);
+      if (slides.length > 1) window.__homePosterTimer = setInterval(function () { show(index + 1); }, 5000);
+    };
+  });
+  show(index);
+};
+window.startHomePoster();
+</script>
 
 <div id=fs class="container main font-medium">
  <a href=# accesskey=c class=accesskey title=主要內容區 id=accesskey_c>:::</a>

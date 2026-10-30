@@ -27,6 +27,10 @@ textarea { min-height: 88px; resize: vertical; }
 .hidden { display: none !important; }
 .images { display: flex; gap: 8px; flex-wrap: wrap; }
 .images figure { margin: 0; width: 120px; }
-.images img, .body img { max-width: 100%; height: auto; }
+.images img, .body img, .poster-list img { max-width: 100%; height: auto; }
+.poster-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.poster-list li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding-top: 12px; border-top: 1px solid #e6eef6; }
+.poster-list img { width: 220px; background: #eef3f8; }
+button:disabled { opacity: .4; cursor: default; }
 .split label { flex: 1; }
 @media (max-width: 720px) { .top, .news-column header, .news-column li { display: grid; } }

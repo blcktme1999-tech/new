@@ -55,6 +55,12 @@ const DEFAULT_CONTACT = {
   reportPhones: ['(02)27661919', '(02)27668989']
 };
 
+const DEFAULT_POSTERS = [
+  { id: 'hero', url: '/public/home-posters/hero.jpg', sortOrder: 0 }
+];
+
+const MAX_POSTERS = 30;
+
 function categoryKeys() {
   return CATEGORIES.map((item) => item.key);
 }
@@ -106,6 +112,35 @@ function normalizeUnits(input) {
   const invalid = units.find((unit) => unit.email && !validEmail(unit.email));
   if (invalid) return { error: `${invalid.name}的信箱格式不正確` };
   return { units };
+}
+
+function validPosterUrl(value) {
+  const url = String(value || '').trim();
+  if (DEFAULT_POSTERS.some((item) => item.url === url)) return true;
+  if (url.startsWith('/uploads/site-posters/') && !url.includes('..') && !url.includes('\\')) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch (_error) {
+    return false;
+  }
+}
+
+function normalizePosters(input) {
+  const source = Array.isArray(input) ? input : [];
+  const urls = source.map((item) => String(item && typeof item === 'object' ? item.url : item || '').trim()).filter(Boolean);
+  if (!urls.length) return { error: '至少要留一張橫幅' };
+  if (urls.length > MAX_POSTERS) return { error: `橫幅最多 ${MAX_POSTERS} 張` };
+  if (urls.some((url) => !validPosterUrl(url))) return { error: '圖片位址不正確' };
+  return { posters: urls.map((url, index) => ({ url, sortOrder: index })) };
+}
+
+function publicPoster(row, index = 0) {
+  return {
+    id: String(row.id || `poster-${index}`),
+    url: String(row.image_url || row.url || ''),
+    sortOrder: Number(row.sort_order ?? row.sortOrder ?? index)
+  };
 }
 
 function normalizeImages(input) {
@@ -205,15 +240,18 @@ function seedNewsRows() {
 module.exports = {
   CATEGORIES,
   DEFAULT_CONTACT,
+  DEFAULT_POSTERS,
   HOME_NEWS_LIMIT,
   MAILBOXES,
   UNITS,
   articlePath,
   normalizeContact,
   normalizeNews,
+  normalizePosters,
   normalizeUnits,
   publicContact,
   publicNews,
+  publicPoster,
   publicUnit,
   readImageDataUrl,
   reorderCategory,

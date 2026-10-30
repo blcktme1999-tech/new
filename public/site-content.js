@@ -204,6 +204,40 @@ function applyArticle(news) {
   if (body) body.innerHTML = articleBody(item);
 }
 
+const POSTER_ALTS = {
+  '/public/home-posters/hero.jpg': 'We Do Better Than Great'
+};
+
+function applyPosters(posters) {
+  if (!isHome(location.pathname)) return;
+  const root = document.querySelector('.home-poster');
+  if (!root || !Array.isArray(posters) || !posters.length) return;
+  const urls = posters.map((item) => String(item.url || '').trim()).filter(Boolean);
+  if (!urls.length) return;
+  root.querySelectorAll('img, .home-poster-dots').forEach((node) => node.remove());
+  urls.forEach((url, index) => {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = POSTER_ALTS[url] || '';
+    if (index === 0) img.className = 'is-active';
+    root.appendChild(img);
+  });
+  if (urls.length > 1) {
+    const dots = document.createElement('div');
+    dots.className = 'home-poster-dots';
+    urls.forEach((url, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.setAttribute('aria-label', POSTER_ALTS[url] || `第${index + 1}張`);
+      button.textContent = String(index + 1);
+      if (index === 0) button.className = 'is-active';
+      dots.appendChild(button);
+    });
+    root.appendChild(dots);
+  }
+  if (typeof window.startHomePoster === 'function') window.startHomePoster();
+}
+
 function revealNews() {
   document.documentElement.classList.add('site-news-ready');
 }
@@ -222,6 +256,7 @@ async function applySiteContent() {
   if (!payload || typeof payload !== 'object') return;
   if (payload.contact) applyContact(payload.contact);
   if (Array.isArray(payload.units)) applyMailboxes(payload.units);
+  if (Array.isArray(payload.posters)) applyPosters(payload.posters);
   if (Array.isArray(payload.news)) {
     applyNews(payload.news);
     applyArticle(payload.news);

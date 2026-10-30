@@ -3,13 +3,16 @@
 const crypto = require('crypto');
 const {
   DEFAULT_CONTACT,
+  DEFAULT_POSTERS,
   MAILBOXES,
   UNITS,
   normalizeContact,
   normalizeNews,
+  normalizePosters,
   normalizeUnits,
   publicContact,
   publicNews,
+  publicPoster,
   publicUnit,
   reorderCategory,
   seedNewsRows
@@ -42,8 +45,23 @@ async function readSite(client) {
   return {
     contact: publicContact(settings.data),
     units: UNITS.map((unit) => publicUnit(unitRows.get(unit.key) || unit)),
-    news: (news.data || []).map(publicNews)
+    news: (news.data || []).map(publicNews),
+    posters: await readPosters(client)
   };
+}
+
+function missingPostersTable(error) {
+  return /site_posters|schema cache|does not exist|Could not find/i.test(error?.message || '');
+}
+
+async function readPosters(client) {
+  const posters = await client.from('site_posters').select('*').order('sort_order', { ascending: true });
+  if (posters.error) {
+    if (missingPostersTable(posters.error)) return DEFAULT_POSTERS.map((item) => ({ ...item }));
+    throw posters.error;
+  }
+  const rows = (posters.data || []).map(publicPoster).filter((item) => item.url);
+  return rows.length ? rows : DEFAULT_POSTERS.map((item) => ({ ...item }));
 }
 
 async function ensureSeed(client) {
@@ -99,6 +117,29 @@ async function saveSite(client, body) {
   return { status: 200, payload: await readSite(client) };
 }
 
+async function savePosters(client, body) {
+  const result = normalizePosters(body.posters);
+  if (result.error) return { status: 400, error: result.error };
+  const existing = await client.from('site_posters').select('id');
+  if (existing.error) {
+    if (missingPostersTable(existing.error)) return { status: 500, error: '請先在 Supabase 執行 SUPABASE_SCHEMA.sql 裡的網站內容資料表。' };
+    throw existing.error;
+  }
+  const rows = result.posters.map((item, index) => ({
+    id: crypto.randomUUID(),
+    image_url: item.url,
+    sort_order: index
+  }));
+  const inserted = await client.from('site_posters').insert(rows);
+  if (inserted.error) throw inserted.error;
+  const oldIds = (existing.data || []).map((row) => row.id);
+  if (oldIds.length) {
+    const removed = await client.from('site_posters').delete().in('id', oldIds);
+    if (removed.error) throw removed.error;
+  }
+  return { status: 200, payload: await readSite(client) };
+}
+
 async function mutateNews(client, body) {
   const action = String(body.action || 'create');
   if (action === 'delete') {
@@ -145,4 +186,4 @@ async function mutateNews(client, body) {
   return { status: 200, payload: await readSite(client) };
 }
 
-module.exports = { mutateNews, readSite, saveSite };
+module.exports = { mutateNews, readSite, savePosters, saveSite };

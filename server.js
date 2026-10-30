@@ -11,7 +11,7 @@ const { Server } = require('socket.io');
 const { RtcRole, RtcTokenBuilder } = require('agora-token');
 const { appendPriorityMessage, priorityEntriesFromInput, publicPriorityApplication } = require('./api/_lib/service');
 const { readImageDataUrl } = require('./api/_lib/site-content');
-const { ensureSiteTables, mutateNews, readSite, saveContact } = require('./api/_lib/site-sqlite');
+const { ensureSiteTables, mutateNews, readSite, saveContact, savePosters } = require('./api/_lib/site-sqlite');
 
 const app = express();
 const server = http.createServer(app);
@@ -356,6 +356,21 @@ app.get('/api/site-content', (_req, res) => {
 app.put('/api/site-content', (req, res) => {
   if (!contentAdmin(req, res)) return;
   const result = saveContact(db, req.body || {});
+  res.status(result.status).json(result.payload || { error: result.error });
+});
+
+app.post('/api/site-posters', (req, res) => {
+  if (!contentAdmin(req, res)) return;
+  const body = req.body || {};
+  if (body.action === 'image') {
+    const image = readImageDataUrl(body.dataUrl);
+    if (image.error) return res.status(400).json({ error: image.error });
+    const filename = `site-posters/${id()}.${image.extension}`;
+    fs.mkdirSync(path.join(UPLOAD_DIR, 'site-posters'), { recursive: true });
+    fs.writeFileSync(path.join(UPLOAD_DIR, filename), image.buffer);
+    return res.json({ url: `/uploads/${filename}` });
+  }
+  const result = savePosters(db, body);
   res.status(result.status).json(result.payload || { error: result.error });
 });
 
