@@ -256,6 +256,48 @@ function revealNews() {
   document.documentElement.classList.add('site-news-ready');
 }
 
+function bindFooterLogos() {
+  document.querySelectorAll('.sbanner').forEach((root) => {
+    if (root.dataset.footerSwipe) return;
+    const track = root.querySelector('.slick-track');
+    const list = root.querySelector('.slick-list');
+    if (!track || !list) return;
+    root.dataset.footerSwipe = '1';
+    track.querySelectorAll('.slick-cloned').forEach((node) => node.remove());
+    const slides = [...track.children];
+    if (!slides.length) return;
+    let index = 0;
+    function perView() {
+      const width = list.clientWidth || root.clientWidth || 320;
+      if (width < 768) return 1;
+      return Math.min(slides.length, Math.max(1, Math.floor(width / 240)));
+    }
+    function show() {
+      const view = perView();
+      const max = Math.max(0, slides.length - view);
+      if (index > max) index = 0;
+      if (index < 0) index = max;
+      const width = (list.clientWidth || root.clientWidth || 320) / view;
+      slides.forEach((slide) => { slide.style.width = width + 'px'; });
+      track.style.width = (width * slides.length) + 'px';
+      track.style.transition = 'transform .35s ease';
+      track.style.transform = 'translate3d(' + (-index * width) + 'px,0,0)';
+    }
+    root.querySelector('.slick-prev')?.addEventListener('click', (event) => { event.preventDefault(); index -= 1; show(); });
+    root.querySelector('.slick-next')?.addEventListener('click', (event) => { event.preventDefault(); index += 1; show(); });
+    let startX = 0;
+    root.addEventListener('touchstart', (event) => { startX = event.changedTouches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', (event) => {
+      const delta = event.changedTouches[0].clientX - startX;
+      if (Math.abs(delta) < 40) return;
+      index += delta < 0 ? 1 : -1;
+      show();
+    }, { passive: true });
+    window.addEventListener('resize', show);
+    show();
+  });
+}
+
 async function applySiteContent() {
   let payload;
   try {
@@ -278,5 +320,5 @@ async function applySiteContent() {
   revealNews();
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindHeaderSearch(); applySiteContent(); });
-else { bindHeaderSearch(); applySiteContent(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindHeaderSearch(); bindFooterLogos(); applySiteContent(); });
+else { bindHeaderSearch(); bindFooterLogos(); applySiteContent(); }

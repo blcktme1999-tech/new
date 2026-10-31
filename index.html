@@ -327,6 +327,7 @@ window.startHomePoster();
 
 <div id=fs class="container main font-medium">
  <a href=# accesskey=c class=accesskey title=主要內容區 id=accesskey_c>:::</a>
+<div class="marquee_box"><div class="home-marquee" aria-label="跑馬燈"><div class="home-marquee-track"><a href="https://isafeevent.moe.edu.tw/" target="_blank" rel="noopener noreferrer" title="全民數位素養自我評量(另開新視窗)">全民數位素養自我評量</a><a href="https://isafeevent.moe.edu.tw/" target="_blank" rel="noopener noreferrer" title="全民數位素養自我評量(另開新視窗)">全民數位素養自我評量</a></div></div></div>
  <div class="row equal-height-thumbnail">
  <div class="col-lg-7 col-sm-12 col-12">
  <div class=site id=a1></div>
@@ -990,6 +991,11 @@ Copyright (c) 2015 Daniel Eden
 .service-track a { flex: 0 0 100%; display: grid; justify-items: center; gap: 10px; color: #fff; text-decoration: none; text-align: center; }
 .service-badge { display: grid; place-items: center; width: 148px; height: 148px; border: 0; background: transparent; }
 .service-badge img { width: 148px; height: 148px; object-fit: contain; display: block; }
+.marquee_box { overflow: hidden; background: #fff; }
+.home-marquee { overflow: hidden; }
+.home-marquee-track { display: flex; width: max-content; animation: home-marquee 14s linear infinite; }
+.home-marquee-track a { display: inline-block; padding: 10px 2rem; color: #c4161c; font-size: 1.2rem; line-height: 1.6; text-decoration: none; white-space: nowrap; }
+@keyframes home-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .service-track p { margin: 0; color: #fff; font-size: 1.35rem; letter-spacing: .12em; }
 .service-arrow { width: 42px; height: 72px; border: 0; background: transparent; color: rgba(255,255,255,.85); font-size: 54px; line-height: 1; cursor: pointer; }
 .service-pills { display: grid; gap: 14px; width: min(560px, 92%); margin: 28px auto 0; }
