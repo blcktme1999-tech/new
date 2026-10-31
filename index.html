@@ -617,19 +617,18 @@ window.startHomePoster();
   <div class="service-icons" data-service-icons>
     <button type="button" class="service-arrow prev" aria-label="上一項">‹</button>
     <div class="service-window"><div class="service-track">
-      <a href="/public-services/application-inquiry.html"><span class="service-badge">申</span><p>申請與查詢</p></a>
-      <a href="/public-services/traffic.html"><span class="service-badge">交</span><p>交通類</p></a>
-      <a href="/public-services/fraud-account.html"><span class="service-badge">詐</span><p>疑涉詐欺境外金融帳戶查詢</p></a>
-      <a href="/wanted/criminal-wanted-platform.html"><span class="service-badge">緝</span><p>通緝犯資料查詢</p></a>
-      <a href="/public-services/amber-alert.html"><span class="service-badge">珀</span><p>安珀警報</p></a>
+      <a href="/public-services/application-inquiry.html"><span class="service-badge"><img src="/public/home-sections/service-apply.png" alt=""></span><p>申請與查詢</p></a>
+      <a href="/service"><span class="service-badge"><img src="/public/home-sections/service-report.png" alt=""></span><p>報案及申訴</p></a>
+      <a href="/public-services/traffic.html"><span class="service-badge"><img src="/public/home-sections/service-traffic.png" alt=""></span><p>交通類</p></a>
+      <a href="/public-services/"><span class="service-badge"><img src="/public/home-sections/service-admin.png" alt=""></span><p>行政類</p></a>
+      <a href="/public-services/fraud-account.html"><span class="service-badge"><img src="/public/home-sections/service-fraud.png" alt=""></span><p>疑涉詐欺境外金融帳戶查詢</p></a>
     </div></div>
     <button type="button" class="service-arrow next" aria-label="下一項">›</button>
   </div>
   <div class="service-pills">
-    <a href="/public-services/case-query.html">案件公文</a>
-    <a href="/public-services/case-search.html">案件查詢</a>
-    <a href="/public-services/priority-investigation.html">優先調查申請表</a>
-    <a href="/service">報案及申訴</a>
+    <a href="/public-services/application-inquiry.html">保全業申請進度查詢</a>
+    <a href="/wanted/criminal-wanted-platform.html">通緝犯資料查詢(公告)平臺</a>
+    <a href="/public-services/amber-alert.html">安珀警報兒童綁架預警系統</a>
   </div>
 </div>
 </div>
@@ -644,7 +643,7 @@ window.startHomePoster();
  <div class="list A">
  <div class=box>
  <div class=box_shadow>
- <div class=pic><img src=data:, alt></div>
+ <div class=pic><img src=/public/home-sections/dna.jpg alt=DNA鑑定></div>
  <p class=stitle>DNA鑑定</p>
  <ul>
  <li><a href="/forensics/dna-methods.html" title=鑑識方法介紹>鑑識方法介紹</a></li>
@@ -657,7 +656,7 @@ window.startHomePoster();
  </div>
  <div class=box>
  <div class=box_shadow>
- <div class=pic><img src=data:, alt></div>
+ <div class=pic><img src=/public/home-sections/forensic-science.jpg alt=鑑識科學></div>
  <p class=stitle>鑑識科學</p>
  <ul>
  <li><a href="/forensics/criminal-science-journal.html" title=刑事科學期刊>刑事科學期刊</a></li>
@@ -669,20 +668,20 @@ window.startHomePoster();
  </div>
  <div class=box>
  <div class=box_shadow>
- <div class=pic><img src=data:, alt></div>
+ <div class=pic><img src=/public/home-sections/fingerprint.jpg alt=指紋科學></div>
  <p class=stitle>指紋科學</p>
  <ul>
  <li><a href="/forensics/fingerprint-work.html" title=指紋鑑識工作>指紋鑑識工作</a></li>
  <li><a href="/forensics/fingerprint-encyclopedia.html" title=指紋科學小百科>指紋科學小百科</a></li>
  <li><a href="/forensics/fingerprint-methods.html" title=指紋鑑識方法介紹>指紋鑑識方法介紹</a></li>
- <li><a href="/" title=自行捺印指紋>自行捺印指紋</a></li>
+ <li><a href="/forensics/fingerprint-methods.html" title=自行捺印指紋>自行捺印指紋</a></li>
  </ul>
  <div class=more><a href=/forensics/fingerprint-science.html title=看更多指紋科學>MORE +</a></div>
  </div>
  </div>
  <div class=box>
  <div class=box_shadow>
- <div class=pic><img src=data:, alt></div>
+ <div class=pic><img src=/public/home-sections/drugs.jpg alt=常見毒品></div>
  <p class=stitle>常見毒品</p>
  <ul>
  <li><a href="/forensics/emerging-drugs.html" title=新興毒品>新興毒品</a></li>
@@ -980,7 +979,7 @@ Copyright (c) 2015 Daniel Eden
 @media (max-width: 767px) {
   .card_list .list, .col-lg-12 .card_list .list { display: flex !important; flex-direction: column !important; align-items: center; }
   .col-lg-12 .card_list .box, .card_list .list .box { max-width: 100% !important; width: min(100%, 520px); }
-  .card_list .pic img[src="data:,"], .card_list .pic img:not([src]), .card_list .pic img[src=""] { display: none; }
+  .card_list .pic img { width: 100%; height: auto; display: block; }
   .album_slider .slick-prev, .album_slider .slick-next, .tabpic_slider .slick-prev, .tabpic_slider .slick-next { z-index: 3; width: 42px; height: 42px; }
   .album_slider .slick-prev:before, .album_slider .slick-next:before, .tabpic_slider .slick-prev:before, .tabpic_slider .slick-next:before { opacity: 1; }
 }
@@ -989,7 +988,8 @@ Copyright (c) 2015 Daniel Eden
 .service-window { overflow: hidden; }
 .service-track { display: flex; transition: transform .35s ease; }
 .service-track a { flex: 0 0 100%; display: grid; justify-items: center; gap: 10px; color: #fff; text-decoration: none; text-align: center; }
-.service-badge { display: grid; place-items: center; width: 148px; height: 148px; border: 3px solid #fff; border-radius: 50%; font-size: 42px; font-weight: 700; }
+.service-badge { display: grid; place-items: center; width: 148px; height: 148px; border: 0; background: transparent; }
+.service-badge img { width: 148px; height: 148px; object-fit: contain; display: block; }
 .service-track p { margin: 0; color: #fff; font-size: 1.35rem; letter-spacing: .12em; }
 .service-arrow { width: 42px; height: 72px; border: 0; background: transparent; color: rgba(255,255,255,.85); font-size: 54px; line-height: 1; cursor: pointer; }
 .service-pills { display: grid; gap: 14px; width: min(560px, 92%); margin: 28px auto 0; }
