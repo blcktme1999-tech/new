@@ -51,6 +51,8 @@ function render() {
     const saved = content.units.find((unit) => unit.key === mailbox.key);
     return `<label>${escapeHtml(mailbox.name)}<input data-unit="${escapeHtml(mailbox.key)}" type="email" value="${escapeHtml(saved?.email || '')}" placeholder="name@example.com" autocomplete="off"></label>`;
   }).join('');
+  const qrPreview = $('#footerQrPreview');
+  if (qrPreview) qrPreview.src = content.footerQr || '/public/home-sections/footer-qr.png';
   const news = $('#newsBoard');
   news.innerHTML = content.categories ? '' : '';
   const categories = [
@@ -177,6 +179,24 @@ $('#logoutButton').addEventListener('click', async () => {
 });
 
 $('#contactForm').addEventListener('submit', saveContact);
+const footerQrForm = $('#footerQrForm');
+if (footerQrForm) footerQrForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const file = $('#footerQrFile').files[0];
+  if (!file) return status('請先選擇二維碼圖片', true);
+  status('儲存中…');
+  try {
+    const dataUrl = await readImageFile(file);
+    const uploaded = await api('/api/site-footer', { method: 'POST', body: JSON.stringify({ action: 'image', dataUrl }) });
+    const saved = await api('/api/site-footer', { method: 'POST', body: JSON.stringify({ action: 'save', url: uploaded.url }) });
+    state.content.footerQr = saved.footerQr;
+    $('#footerQrFile').value = '';
+    render();
+    status('頁尾二維碼已更新');
+  } catch (error) {
+    status(error.message, true);
+  }
+});
 $('#posterForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!state.posters.length) return status('至少要留一張橫幅', true);

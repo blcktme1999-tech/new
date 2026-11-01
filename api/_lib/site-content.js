@@ -55,6 +55,7 @@ const DEFAULT_CONTACT = {
   reportPhones: ['(02)27661919', '(02)27668989']
 };
 
+const DEFAULT_FOOTER_QR = '/public/home-sections/footer-qr.png';
 const DEFAULT_POSTERS = [
   { id: 'hero', url: '/public/home-posters/hero.jpg', sortOrder: 0 }
 ];
@@ -112,6 +113,18 @@ function normalizeUnits(input) {
   const invalid = units.find((unit) => unit.email && !validEmail(unit.email));
   if (invalid) return { error: `${invalid.name}的信箱格式不正確` };
   return { units };
+}
+
+function validFooterQr(value) {
+  const url = String(value || '').trim();
+  if (url === DEFAULT_FOOTER_QR) return true;
+  if (url.startsWith('/uploads/site-footer/') && !url.includes('..') && !url.includes('\\')) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch (_error) {
+    return false;
+  }
 }
 
 function validPosterUrl(value) {
@@ -240,6 +253,7 @@ function seedNewsRows() {
 module.exports = {
   CATEGORIES,
   DEFAULT_CONTACT,
+  DEFAULT_FOOTER_QR,
   DEFAULT_POSTERS,
   HOME_NEWS_LIMIT,
   MAILBOXES,
@@ -255,5 +269,6 @@ module.exports = {
   publicUnit,
   readImageDataUrl,
   reorderCategory,
+  validFooterQr,
   seedNewsRows
 };

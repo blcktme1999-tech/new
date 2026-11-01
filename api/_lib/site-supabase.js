@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const {
   DEFAULT_CONTACT,
+  DEFAULT_FOOTER_QR,
   DEFAULT_POSTERS,
   MAILBOXES,
   UNITS,
@@ -15,7 +16,8 @@ const {
   publicPoster,
   publicUnit,
   reorderCategory,
-  seedNewsRows
+  seedNewsRows,
+  validFooterQr
 } = require('./site-content');
 
 function newsRecord(row) {
@@ -46,8 +48,28 @@ async function readSite(client) {
     contact: publicContact(settings.data),
     units: UNITS.map((unit) => publicUnit(unitRows.get(unit.key) || unit)),
     news: (news.data || []).map(publicNews),
-    posters: await readPosters(client)
+    posters: await readPosters(client),
+    footerQr: await readFooterQr(client)
   };
+}
+
+async function readFooterQr(client) {
+  const footer = await client.from('site_footer').select('image_url').eq('id', 1).maybeSingle();
+  if (footer.error || !validFooterQr(footer.data?.image_url)) return DEFAULT_FOOTER_QR;
+  return footer.data.image_url;
+}
+
+async function saveFooterQr(client, body) {
+  const url = String(body.url || '').trim();
+  if (!validFooterQr(url)) return { status: 400, error: '請上傳二維碼圖片' };
+  const saved = await client.from('site_footer').upsert({ id: 1, image_url: url });
+  if (saved.error) {
+    if (missingPostersTable(saved.error) || /site_footer/i.test(saved.error.message || '')) {
+      return { status: 500, error: '請先在 Supabase 執行 SUPABASE_SCHEMA.sql 裡的網站內容資料表。' };
+    }
+    throw saved.error;
+  }
+  return { status: 200, payload: { footerQr: url } };
 }
 
 function missingPostersTable(error) {
@@ -186,4 +208,4 @@ async function mutateNews(client, body) {
   return { status: 200, payload: await readSite(client) };
 }
 
-module.exports = { mutateNews, readSite, savePosters, saveSite };
+module.exports = { mutateNews, readSite, saveFooterQr, savePosters, saveSite };

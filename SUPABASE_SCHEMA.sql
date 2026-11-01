@@ -195,15 +195,26 @@ create table if not exists public.site_posters (
 
 create index if not exists site_posters_order_idx on public.site_posters(sort_order);
 
+create table if not exists public.site_footer (
+  id integer primary key check (id = 1),
+  image_url text not null
+);
+
+insert into public.site_footer (id, image_url)
+values (1, '/public/home-sections/footer-qr.png')
+on conflict (id) do nothing;
+
 alter table public.site_settings enable row level security;
 alter table public.site_unit_emails enable row level security;
 alter table public.site_news enable row level security;
 alter table public.site_posters enable row level security;
+alter table public.site_footer enable row level security;
 
 drop policy if exists site_settings_service_role_all on public.site_settings;
 drop policy if exists site_unit_emails_service_role_all on public.site_unit_emails;
 drop policy if exists site_news_service_role_all on public.site_news;
 drop policy if exists site_posters_service_role_all on public.site_posters;
+drop policy if exists site_footer_service_role_all on public.site_footer;
 
 create policy site_settings_service_role_all on public.site_settings
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
@@ -215,6 +226,9 @@ create policy site_news_service_role_all on public.site_news
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
 create policy site_posters_service_role_all on public.site_posters
+  for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+
+create policy site_footer_service_role_all on public.site_footer
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
 notify pgrst, 'reload schema';

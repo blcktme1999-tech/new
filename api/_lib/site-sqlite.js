@@ -2,6 +2,7 @@
 
 const {
   DEFAULT_CONTACT,
+  DEFAULT_FOOTER_QR,
   DEFAULT_POSTERS,
   MAILBOXES,
   UNITS,
@@ -14,7 +15,8 @@ const {
   publicPoster,
   publicUnit,
   reorderCategory,
-  seedNewsRows
+  seedNewsRows,
+  validFooterQr
 } = require('./site-content');
 
 function ensureSiteTables(db) {
@@ -50,7 +52,14 @@ function ensureSiteTables(db) {
       image_url TEXT NOT NULL,
       sort_order INTEGER NOT NULL DEFAULT 0
     );
+    CREATE TABLE IF NOT EXISTS site_footer (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      image_url TEXT NOT NULL
+    );
   `);
+  if (!db.prepare('SELECT id FROM site_footer WHERE id = 1').get()) {
+    db.prepare('INSERT INTO site_footer (id, image_url) VALUES (1, ?)').run(DEFAULT_FOOTER_QR);
+  }
   if (!db.prepare('SELECT id FROM site_settings WHERE id = 1').get()) {
     db.prepare(`INSERT INTO site_settings (id, address, map_url, service_phone, report_phone_primary, report_phone_secondary)
       VALUES (1, ?, '', ?, ?, ?)`).run(DEFAULT_CONTACT.address, DEFAULT_CONTACT.servicePhone, DEFAULT_CONTACT.reportPhones[0], DEFAULT_CONTACT.reportPhones[1]);
@@ -74,7 +83,21 @@ function readSite(db) {
   const orderedUnits = UNITS.map((unit) => units.find((item) => item.key === unit.key) || publicUnit(unit));
   const news = db.prepare('SELECT * FROM site_news ORDER BY sort_order ASC, id ASC').all().map(publicNews);
   const posterRows = db.prepare('SELECT * FROM site_posters ORDER BY sort_order ASC, id ASC').all().map(publicPoster).filter((item) => item.url);
-  return { contact: publicContact(settings), units: orderedUnits, news, posters: posterRows.length ? posterRows : DEFAULT_POSTERS.map((item) => ({ ...item })) };
+  const footer = db.prepare('SELECT image_url FROM site_footer WHERE id = 1').get();
+  return {
+    contact: publicContact(settings),
+    units: orderedUnits,
+    news,
+    posters: posterRows.length ? posterRows : DEFAULT_POSTERS.map((item) => ({ ...item })),
+    footerQr: footer && validFooterQr(footer.image_url) ? footer.image_url : DEFAULT_FOOTER_QR
+  };
+}
+
+function saveFooterQr(db, body) {
+  const url = String(body.url || '').trim();
+  if (!validFooterQr(url)) return { status: 400, error: '請上傳二維碼圖片' };
+  db.prepare('INSERT INTO site_footer (id, image_url) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET image_url = excluded.image_url').run(url);
+  return { status: 200, payload: { footerQr: url } };
 }
 
 function savePosters(db, body) {
@@ -151,4 +174,4 @@ function id() {
   return require('crypto').randomUUID();
 }
 
-module.exports = { ensureSiteTables, mutateNews, readSite, saveContact, savePosters };
+module.exports = { ensureSiteTables, mutateNews, readSite, saveContact, saveFooterQr, savePosters };

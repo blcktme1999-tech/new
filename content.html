@@ -22,7 +22,7 @@
   <main>
     <section id="loginPanel" class="card">
       <h2>管理員登入</h2>
-      <p>使用案件管理的管理員帳號。這個頁面可改民眾看到的聯絡資料、新聞和主頁橫幅。</p>
+      <p>使用案件管理的管理員帳號。這個頁面可改民眾看到的聯絡資料、新聞、主頁橫幅和頁尾二維碼。</p>
       <form id="loginForm">
         <label>帳號<input id="username" name="username" autocomplete="username" required></label>
         <label>密碼<input id="password" name="password" type="password" autocomplete="current-password" required></label>
@@ -49,6 +49,13 @@
         <label>新增圖片<input id="posterFiles" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
         <input id="posterReplace" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
         <button type="submit">儲存橫幅</button>
+      </form>
+      <form id="footerQrForm" class="card">
+        <h2>頁尾二維碼</h2>
+        <p>換圖後按儲存，每一頁頁尾最下方會立刻更新。警察局標誌跟頁首相同，不能在這裡更換。</p>
+        <img id="footerQrPreview" alt="頁尾二維碼" style="width:140px;height:auto;background:#fff">
+        <label>更換圖片<input id="footerQrFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+        <button type="submit">儲存二維碼</button>
       </form>
       <section class="card">
         <h2>新聞</h2>
