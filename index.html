@@ -374,7 +374,10 @@ window.startHomePoster();
  <div class=tabs>
  <div class=title><h2>通緝專區</h2></div>
  <ul class="nav nav-tabs nav-fill" id=myTab02 role=tablist>
+ <li class=nav-item> <a class="nav-link active" id=nav-tab21 data-toggle=tab href=#tab21 role=tab aria-controls=tab21 aria-selected=true>重要緊急查緝專案</a> </li>
+ <li class=nav-item> <a class=nav-link id=nav-tab22 data-toggle=tab href=#tab22 role=tab aria-controls=tab22 aria-selected=false>詐欺車手專區</a> </li>
  <li class=nav-item> <a class=nav-link id=nav-tab23 data-toggle=tab href=#tab23 role=tab aria-controls=tab23 aria-selected=false>失物查尋專刊</a> </li>
+ <li class=nav-item> <a class=nav-link id=nav-tab24 data-toggle=tab href=#tab24 role=tab aria-controls=tab24 aria-selected=false>檢舉外逃通緝犯及跨國犯罪</a> </li>
  </ul>
  <div class=tab-content id=myTab02Content>
  <div class="tab-pane fade show active" id=tab21 role=tabpanel aria-labelledby=nav-tab21>
@@ -592,15 +595,15 @@ window.startHomePoster();
  <button type=button data-role=none class="slick-next slick-arrow" aria-label=下一張(Next) role=button>下一張(Next)</button></div>
  <div class=more> <a href="/wanted/criminal-wanted-platform.html" title=看更多重要緊急查緝專案><img src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect fill-opacity="0"/></svg>' alt=看更多重要緊急查緝專案 style="background-blend-mode:normal!important;background-clip:content-box!important;background-position:50% 50%!important;background-color:rgba(0,0,0,0)!important;background-image:var(--sf-img-34)!important;background-size:100% 100%!important;background-origin:content-box!important;background-repeat:no-repeat!important"></a> </div>
  </div>
- <div class="tab-pane fade sf-hidden" id=tab22 role=tabpanel aria-labelledby=nav-tab22>
- 
- 
+ <div class="tab-pane fade" id=tab22 role=tabpanel aria-labelledby=nav-tab22>
+ <div class=more> <a href="/wanted/" title=看更多詐欺車手專區>看更多</a> </div>
  </div>
- <div class="tab-pane fade sf-hidden" id=tab23 role=tabpanel aria-labelledby=nav-tab23>
- 
- 
+ <div class="tab-pane fade" id=tab23 role=tabpanel aria-labelledby=nav-tab23>
+ <div class=more> <a href="/wanted/lost-items.html" title=看更多失物查尋專刊>看更多</a> </div>
  </div>
- <div class="tab-pane fade sf-hidden" id=tab24 role=tabpanel aria-labelledby=nav-tab24>
+ <div class="tab-pane fade" id=tab24 role=tabpanel aria-labelledby=nav-tab24>
+ <div class=more> <a href="/wanted/report-protection.html" title=看更多檢舉外逃通緝犯及跨國犯罪>看更多</a> </div>
+ </div>
  
  
  </div>
@@ -1072,24 +1075,30 @@ Copyright (c) 2015 Daniel Eden
     window.addEventListener('resize', show);
     show();
   }
-  ['tab01', 'tab02', 'tab03', 'tab04'].forEach(function (id) {
-    var link = document.getElementById('nav-' + id);
-    if (!link) return;
-    link.addEventListener('click', function (event) {
-      event.preventDefault();
-      ['tab01', 'tab02', 'tab03', 'tab04'].forEach(function (paneId) {
-        var pane = document.getElementById(paneId);
-        var nav = document.getElementById('nav-' + paneId);
-        var on = paneId === id;
-        pane.classList.toggle('show', on);
-        pane.classList.toggle('active', on);
-        if (nav) {
-          nav.classList.toggle('active', on);
-          nav.setAttribute('aria-selected', on ? 'true' : 'false');
-        }
+  function bindTabGroup(ids) {
+    ids.forEach(function (id) {
+      var link = document.getElementById('nav-' + id);
+      if (!link) return;
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        ids.forEach(function (paneId) {
+          var pane = document.getElementById(paneId);
+          var nav = document.getElementById('nav-' + paneId);
+          var on = paneId === id;
+          if (pane) {
+            pane.classList.toggle('show', on);
+            pane.classList.toggle('active', on);
+          }
+          if (nav) {
+            nav.classList.toggle('active', on);
+            nav.setAttribute('aria-selected', on ? 'true' : 'false');
+          }
+        });
       });
     });
-  });
+  }
+  bindTabGroup(['tab01', 'tab02', 'tab03', 'tab04']);
+  bindTabGroup(['tab21', 'tab22', 'tab23', 'tab24']);
 })();
 </script>
 
