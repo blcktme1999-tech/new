@@ -253,6 +253,7 @@ function bindFooterBrand(qrUrl) {
     style.textContent = [
       'footer .container,footer .editor,footer .info{position:relative}',
       'footer .logo img{width:min(280px,72vw);height:auto;display:block}',
+      'html:not(.site-phones-ready) footer .info>.left>p:has([data-site-phone]){visibility:visible!important}',
       'footer .right ul:first-child img{width:120px;height:120px;object-fit:contain;background:#fff}',
       'footer .right ul:last-child img{height:46px;width:auto}',
       '@media (max-width:991px){footer .right{position:static!important}footer .right ul,footer .right ul li{float:none!important;text-align:left}}'
@@ -401,5 +402,5 @@ async function applySiteContent() {
   revealNews();
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); });
-else { bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindHeaderSearch(); bindFooterLogos(); bindFooterBrand(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); });
+else { bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); bindFooterBrand(); applySiteContent(); }
