@@ -313,9 +313,10 @@ function bindWantedTabs() {
   style.textContent = [
     '#myTab02{display:flex!important;flex-wrap:nowrap!important;width:100%;margin:0;padding:0}',
     '#myTab02>.nav-item{box-sizing:border-box;margin:0!important;float:none!important;min-width:0!important;display:flex!important;flex:1 1 0%!important;max-width:none!important;width:auto!important}',
-    '#myTab02 .nav-link{display:flex!important;align-items:center;justify-content:center;width:100%;height:100%;box-sizing:border-box;padding:14px 8px;font-size:110%;line-height:1.35;white-space:normal;text-decoration:none}',
+    '#myTab02 .nav-link{display:flex!important;align-items:center;justify-content:center;width:100%;height:100%;box-sizing:border-box;padding:14px 8px;font-size:110%;line-height:1.35;white-space:nowrap!important;text-align:center;text-decoration:none}',
     '#myTab02.wanted-tabs-wrapped{flex-wrap:wrap!important}',
-    '#myTab02.wanted-tabs-wrapped>.nav-item{flex:0 0 33.333%!important;max-width:33.333%!important;width:33.333%!important}'
+    '#myTab02.wanted-tabs-wrapped>.nav-item:nth-child(-n+3){flex:0 0 33.333%!important;max-width:33.333%!important;width:33.333%!important}',
+    '#myTab02.wanted-tabs-wrapped>.nav-item:nth-child(4){flex:0 0 100%!important;max-width:100%!important;width:100%!important}'
   ].join('');
   document.head.appendChild(style);
   const items = [...list.children];
