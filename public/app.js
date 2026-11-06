@@ -651,8 +651,7 @@ function renderMedia(root, caseItem) {
     <aside class="statement-dossier">
       <section class="statement-docs">
         <h3>案件公文</h3>
-        <p class="statement-status-line">狀態 <strong data-slot="statementStatusBadge">${escapeHtml(caseStatus(caseItem))}</strong></p>
-        <div data-slot="statementFiles"><p class="muted">尚無公文</p></div>
+        <div data-slot="statementFiles"></div>
         <div data-slot="statementPreview" class="statement-preview" hidden></div>
       </section>
       <section data-slot="statementConversation" class="statement-messages"></section>
@@ -729,6 +728,8 @@ function renderMedia(root, caseItem) {
     session.resumeAudio().catch(showMediaError);
   });
   bindStatementFiles(root, caseItem);
+  const statementFiles = $('[data-slot="statementFiles"]', root);
+  if (statementFiles) statementFiles.innerHTML = statementTableMarkup(caseItem, []);
   void loadStatementFiles(root, caseItem);
   renderMediaState();
 }
@@ -1098,14 +1099,17 @@ function previewableImage(file) {
   return mime.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp)$/.test(name);
 }
 
-function statementFileMarkup(files) {
-  if (!files.length) return '<p class="muted">尚無公文</p>';
-  return `<div class="statement-file-list">${files.map((file) => {
-    const url = safeFileUrl(file.url);
-    const name = escapeHtml(file.originalName || '公文');
-    const thumb = url && previewableImage(file) ? `<img src="${escapeHtml(url)}" alt="">` : '<span class="statement-file-icon">檔案</span>';
-    return `<button type="button" class="statement-file" data-statement-file="${escapeHtml(file.id)}">${thumb}<span>${name}</span></button>`;
-  }).join('')}</div>`;
+function statementField(value) {
+  const text = String(value || '').trim();
+  return text || '未提供';
+}
+
+function statementTableMarkup(caseItem, files) {
+  const attachments = files.length ? files.map((file) => {
+    const name = escapeHtml(file.originalName || '附件');
+    return `<button type="button" class="statement-file-link" data-statement-file="${escapeHtml(file.id)}">${name}</button>`;
+  }).join('<br>') : '尚無附件';
+  return `<div class="statement-table-wrap"><table class="statement-table"><thead><tr><th>案號</th><th>狀態</th><th>案件</th><th>公文</th><th>內容</th><th>附件</th><th>建立時間</th></tr></thead><tbody><tr><td>${escapeHtml(displayCaseNumber(caseItem))}</td><td data-slot="statementStatusBadge">${escapeHtml(caseStatus(caseItem))}</td><td>${escapeHtml(statementField(caseItem.documentCase || caseItem.caseTitle))}</td><td>${escapeHtml(statementField(caseItem.documentOfficial))}</td><td>${escapeHtml(statementField(caseItem.documentContent || caseItem.caseSummary))}</td><td>${attachments}</td><td>${escapeHtml(formatTime(caseItem.createdAt))}</td></tr></tbody></table></div>`;
 }
 
 function showStatementPreview(root, file) {
@@ -1141,7 +1145,7 @@ async function loadStatementFiles(root, caseItem) {
     const files = (Array.isArray(data.files) ? data.files : []).filter((file) => file.kind !== 'recording');
     const previous = (root.statementFileList || []).map((file) => file.id).join();
     root.statementFileList = files;
-    if (previous !== files.map((file) => file.id).join()) slot.innerHTML = statementFileMarkup(files);
+    if (previous !== files.map((file) => file.id).join()) slot.innerHTML = statementTableMarkup(state.currentCase || caseItem, files);
   } catch (error) {
     if (slot.isConnected) slot.innerHTML = `<p class="notice error">${escapeHtml(errorText(error))}</p>`;
   }
