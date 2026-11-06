@@ -208,6 +208,19 @@ h3 { margin-bottom: .45rem; }
 .message-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .7rem; margin-top: .8rem; }
 
 .media-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); gap: 1rem; }
+.statement-layout { align-items: start; }
+.statement-layout .video-grid { position: sticky; top: 12px; z-index: 4; }
+.statement-dossier { display: grid; gap: 1rem; min-width: 0; }
+.statement-docs, .statement-messages { min-width: 0; }
+.statement-status-line { margin: 0 0 .6rem; }
+.statement-file-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: .6rem; }
+.statement-file { display: grid; gap: .35rem; justify-items: center; padding: .45rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: inherit; cursor: pointer; }
+.statement-file img, .statement-file-icon { width: 100%; height: 72px; object-fit: cover; border-radius: 6px; background: #eef3f8; display: grid; place-items: center; }
+.statement-file span { font-size: .82rem; text-align: center; overflow-wrap: anywhere; }
+.statement-preview { margin-top: .8rem; }
+.statement-preview img, .statement-preview iframe { width: 100%; max-height: 420px; border: 0; border-radius: 8px; background: #fff; }
+.statement-preview iframe { height: 420px; }
+.statement-messages .chat-log { max-height: 280px; }
 .media-controls { display: grid; gap: .75rem; }
 .button-row { display: flex; flex-wrap: wrap; gap: .55rem; }
 .video-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
@@ -426,7 +439,9 @@ body.police-service {
 .police-service .priority-entry-list { display: grid; gap: 6px; margin-top: 10px; font-size: .9rem; }
 
 /* New dynamic media markup; legacy .video-pair remains usable during JS handoff. */
-.police-service .media-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.police-service .media-grid { grid-template-columns: minmax(220px, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.police-service .statement-layout .video-grid { position: sticky; top: 12px; z-index: 4; }
+.police-service .statement-layout .video-slot { min-height: 140px; }
 .police-service :is(.media-controls, .media-actions) { display: grid; gap: 14px; min-width: 0; }
 .police-service :is(.video-grid, .video-pair) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .police-service .video-tile {
@@ -552,7 +567,7 @@ body.police-service {
   .police-service .entry-steps li { align-items: center; gap: 12px; }
   .police-service .entry-steps div > span { margin-top: 0; }
   .police-service .entry-heading h2 { font-size: 1.4rem; }
-  .police-service :is(.video-grid, .video-pair, .admin-grid) { grid-template-columns: minmax(0, 1fr); }
+  .police-service :is(.video-grid, .video-pair, .admin-grid), .police-service .media-grid { grid-template-columns: minmax(0, 1fr); }
   .police-service .priority-row { grid-template-columns: minmax(0, 1fr); }
   .police-service .priority-row > strong,
   .police-service .priority-row > button,

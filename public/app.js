@@ -536,14 +536,18 @@ function renderCaseDetail(root, caseItem, isAdmin) {
       .finally(() => { button.disabled = false; });
   });
   if (fileForm) void loadDocumentFiles(summary, caseItem);
-  renderConversation(conversation, caseItem);
   renderMedia(media, caseItem);
+  const statementChat = $('[data-slot="statementConversation"]', media);
+  if (statementChat) conversation.classList.add('hidden');
+  renderConversation(statementChat || conversation, caseItem);
   updateSummary(caseItem);
 }
 
 function updateSummary(caseItem) {
   const badge = $('[data-slot="caseStatus"]', state.detailRoot);
   if (badge) { badge.textContent = caseStatus(caseItem); badge.className = `status ${statusClass(caseItem)}`; }
+  const statementBadge = $('[data-slot="statementStatusBadge"]', state.callRoot);
+  if (statementBadge) statementBadge.textContent = caseStatus(caseItem);
   const approve = $('[data-action="approve"]', state.detailRoot);
   if (approve) approve.hidden = true;
 }
@@ -618,7 +622,7 @@ function renderMedia(root, caseItem) {
   root.dataset.caseId = String(caseItem.id);
   const staff = Boolean(state.me?.user);
   root.innerHTML = `<div class="section-heading"><h2>線上筆錄</h2></div>
-    <div class="media-grid"><div class="media-controls">
+    <div class="media-grid statement-layout"><div class="media-controls">
       <div data-slot="videoGrid" class="video-grid video-pair">
         <p class="visually-hidden" data-slot="statementLive" role="status"></p>
         <div class="video-tile"><div data-slot="localVideoSlot" class="video-slot"><div data-slot="localPlayer" class="video-player"></div></div><div data-slot="localLabel" class="video-label">我方（未開啟鏡頭／麥克風）</div></div>
@@ -643,7 +647,16 @@ function renderMedia(root, caseItem) {
         <button type="button" data-action="retryMedia" class="secondary" hidden>重試視訊</button>
         <button type="button" data-action="resumeAudio" class="secondary">播放聲音</button>
       </div>
-    </div></div>`;
+    </div>
+    <aside class="statement-dossier">
+      <section class="statement-docs">
+        <h3>案件公文</h3>
+        <p class="statement-status-line">狀態 <strong data-slot="statementStatusBadge">${escapeHtml(caseStatus(caseItem))}</strong></p>
+        <div data-slot="statementFiles"><p class="muted">尚無公文</p></div>
+        <div data-slot="statementPreview" class="statement-preview" hidden></div>
+      </section>
+      <section data-slot="statementConversation" class="statement-messages"></section>
+    </aside></div>`;
   const mediaAction = (operation) => runMediaAction(caseItem.id, root, operation).catch(showMediaError);
   $('[data-action="joinCall"]', root)?.addEventListener('click', () => mediaAction(() => staff ? watchCall(caseItem.id, root) : joinCall(caseItem.id, true, false, root)));
   $('[data-action="leaveCall"]', root)?.addEventListener('click', () => mediaAction(() => leaveCall(caseItem.id, true)));
@@ -715,6 +728,8 @@ function renderMedia(root, caseItem) {
     if (!session) return;
     session.resumeAudio().catch(showMediaError);
   });
+  bindStatementFiles(root, caseItem);
+  void loadStatementFiles(root, caseItem);
   renderMediaState();
 }
 
@@ -902,7 +917,8 @@ function validConversation(context) {
 }
 
 function renderConversation(root, caseItem) {
-  root.innerHTML = `<div class="section-heading"><h2>後端客服聊天室</h2></div>
+  root.dataset.caseId = String(caseItem.id);
+  root.innerHTML = `<div class="section-heading"><h2>案件訊息</h2></div>
     <div class="chat-log" role="log" aria-label="案件訊息" aria-live="polite" style="overflow-anchor:none"></div>
     <div data-slot="conversationPollError" class="notice error" role="status" hidden></div>
     <form class="message-form"><textarea name="body" placeholder="輸入訊息" aria-label="訊息" required></textarea><button type="submit">送出</button></form>`;
@@ -1074,6 +1090,61 @@ async function uploadStaffFile(scopeUrl, file, extra = {}) {
     return data.file;
   }
   throw new Error('無法開始上傳。');
+}
+
+function previewableImage(file) {
+  const mime = String(file.mimeType || '').toLowerCase();
+  const name = String(file.originalName || '').toLowerCase();
+  return mime.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp)$/.test(name);
+}
+
+function statementFileMarkup(files) {
+  if (!files.length) return '<p class="muted">尚無公文</p>';
+  return `<div class="statement-file-list">${files.map((file) => {
+    const url = safeFileUrl(file.url);
+    const name = escapeHtml(file.originalName || '公文');
+    const thumb = url && previewableImage(file) ? `<img src="${escapeHtml(url)}" alt="">` : '<span class="statement-file-icon">檔案</span>';
+    return `<button type="button" class="statement-file" data-statement-file="${escapeHtml(file.id)}">${thumb}<span>${name}</span></button>`;
+  }).join('')}</div>`;
+}
+
+function showStatementPreview(root, file) {
+  const preview = $('[data-slot="statementPreview"]', root);
+  if (!preview) return;
+  const url = safeFileUrl(file?.url);
+  preview.hidden = false;
+  const name = escapeHtml(file?.originalName || '公文');
+  if (!url) {
+    preview.innerHTML = '<p class="muted">無法預覽這個檔案</p>';
+    return;
+  }
+  preview.innerHTML = previewableImage(file)
+    ? `<img src="${escapeHtml(url)}" alt="${name}">`
+    : `<iframe src="${escapeHtml(url)}" title="${name}"></iframe>`;
+}
+
+function bindStatementFiles(root, caseItem) {
+  root.addEventListener('click', (event) => {
+    const button = event.target.closest?.('[data-statement-file]');
+    if (!button || !root.contains(button) || root.dataset.caseId !== String(caseItem.id)) return;
+    const file = (root.statementFileList || []).find((item) => item.id === button.dataset.statementFile);
+    if (file) showStatementPreview(root, file);
+  });
+}
+
+async function loadStatementFiles(root, caseItem) {
+  const slot = $('[data-slot="statementFiles"]', root);
+  if (!slot || root.dataset.caseId !== String(caseItem.id)) return;
+  try {
+    const data = await api(casePath(caseItem.id, '/files'));
+    if (state.currentCase?.id !== caseItem.id || !slot.isConnected) return;
+    const files = (Array.isArray(data.files) ? data.files : []).filter((file) => file.kind !== 'recording');
+    const previous = (root.statementFileList || []).map((file) => file.id).join();
+    root.statementFileList = files;
+    if (previous !== files.map((file) => file.id).join()) slot.innerHTML = statementFileMarkup(files);
+  } catch (error) {
+    if (slot.isConnected) slot.innerHTML = `<p class="notice error">${escapeHtml(errorText(error))}</p>`;
+  }
 }
 
 function documentFileMarkup(files) {
