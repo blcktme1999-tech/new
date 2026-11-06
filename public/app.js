@@ -417,7 +417,6 @@ function renderCaseDetail(root, caseItem, isAdmin) {
       <div class="summary-box">案號/報案編號<strong>${escapeHtml(displayCaseNumber(caseItem))}</strong></div>
       <div class="summary-box">證號<strong>${escapeHtml(displayCaseField(caseItem.certificateNumber))}</strong></div>
       <div class="summary-box">狀態<strong data-slot="caseStatus"></strong></div>
-      <div class="summary-box">建立時間<strong>${escapeHtml(formatTime(caseItem.createdAt))}</strong></div>
       <div class="summary-box">案件類型<strong>${escapeHtml(displayCaseField(caseItem.caseType))}</strong></div>
       <div class="summary-box">案件標題<strong>${escapeHtml(displayCaseField(caseItem.caseTitle))}</strong></div>
       <div class="summary-box summary-wide">案件說明<strong>${escapeHtml(displayCaseField(caseItem.caseSummary))}</strong></div>
@@ -1109,7 +1108,7 @@ function statementTableMarkup(caseItem, files) {
     const name = escapeHtml(file.originalName || '附件');
     return `<button type="button" class="statement-file-link" data-statement-file="${escapeHtml(file.id)}">${name}</button>`;
   }).join('<br>') : '尚無附件';
-  return `<div class="statement-table-wrap"><table class="statement-table"><thead><tr><th>案號</th><th>狀態</th><th>案件</th><th>公文</th><th>內容</th><th>附件</th><th>建立時間</th></tr></thead><tbody><tr><td>${escapeHtml(displayCaseNumber(caseItem))}</td><td data-slot="statementStatusBadge">${escapeHtml(caseStatus(caseItem))}</td><td>${escapeHtml(statementField(caseItem.documentCase || caseItem.caseTitle))}</td><td>${escapeHtml(statementField(caseItem.documentOfficial))}</td><td>${escapeHtml(statementField(caseItem.documentContent || caseItem.caseSummary))}</td><td>${attachments}</td><td>${escapeHtml(formatTime(caseItem.createdAt))}</td></tr></tbody></table></div>`;
+  return `<div class="statement-table-wrap"><table class="statement-table"><thead><tr><th>案號</th><th>狀態</th><th>案件</th><th>公文</th><th>內容</th><th>附件</th></tr></thead><tbody><tr><td>${escapeHtml(displayCaseNumber(caseItem))}</td><td data-slot="statementStatusBadge">${escapeHtml(caseStatus(caseItem))}</td><td>${escapeHtml(statementField(caseItem.documentCase || caseItem.caseTitle))}</td><td>${escapeHtml(statementField(caseItem.documentOfficial))}</td><td>${escapeHtml(statementField(caseItem.documentContent || caseItem.caseSummary))}</td><td>${attachments}</td></tr></tbody></table></div>`;
 }
 
 function showStatementPreview(root, file) {

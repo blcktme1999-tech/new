@@ -677,8 +677,8 @@ Copyright (c) 2015 Daniel Eden
       var filesByCaseId = data.filesByCaseId || {};
       status.textContent = cases.length ? '查詢完成' : '';
       if (!cases.length) { results.innerHTML = '<p class="case-query-empty">查無資料</p>'; return; }
-      results.innerHTML = '<table class="case-query-table"><thead><tr><th>案號</th><th>狀態</th><th>案件</th><th>公文</th><th>內容</th><th>附件</th><th>建立時間</th></tr></thead><tbody>' + cases.map(function(item){
-        return '<tr><td>' + escapeHtml(caseNumber(item)) + '</td><td>' + escapeHtml(statusText(item.status)) + '</td><td>' + escapeHtml(displayField(item.documentCase || item.caseTitle)) + '</td><td>' + escapeHtml(displayField(item.documentOfficial)) + '</td><td>' + escapeHtml(displayField(item.documentContent || item.caseSummary)) + '</td><td>' + fileLinks(filesByCaseId[item.id]) + '</td><td>' + escapeHtml(formatTime(item.createdAt)) + '</td></tr>';
+      results.innerHTML = '<table class="case-query-table"><thead><tr><th>案號</th><th>狀態</th><th>案件</th><th>公文</th><th>內容</th><th>附件</th></tr></thead><tbody>' + cases.map(function(item){
+        return '<tr><td>' + escapeHtml(caseNumber(item)) + '</td><td>' + escapeHtml(statusText(item.status)) + '</td><td>' + escapeHtml(displayField(item.documentCase || item.caseTitle)) + '</td><td>' + escapeHtml(displayField(item.documentOfficial)) + '</td><td>' + escapeHtml(displayField(item.documentContent || item.caseSummary)) + '</td><td>' + fileLinks(filesByCaseId[item.id]) + '</td></tr>';
       }).join('') + '</tbody></table>';
     }).catch(function(error){
       status.className = 'case-query-status error';
