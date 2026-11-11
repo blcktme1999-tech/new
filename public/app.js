@@ -1275,6 +1275,14 @@ async function submitAdminForm(form, operation) {
   finally { button.disabled = false; }
 }
 
+async function renderScreenshotLogs() {
+  const list = $('#screenshotLogList');
+  if (!list) return;
+  const data = await api('/api/screenshot-logs');
+  const logs = Array.isArray(data.logs) ? data.logs : [];
+  list.innerHTML = logs.length ? logs.map((item) => `<div class="user-row">${escapeHtml(formatTime(item.createdAt))}｜${escapeHtml(item.account || '未登入')}｜${escapeHtml(item.keyLabel)}｜${escapeHtml(item.page)}｜${escapeHtml(item.ip || '')}</div>`).join('') : '<p class="muted">尚無紀錄</p>';
+}
+
 async function renderAdminTools() {
   const root = $('#adminWorkspace');
   if (!root || $('#createUserForm', root)) return;
@@ -1294,7 +1302,7 @@ async function renderAdminTools() {
       <label>顯示姓名<input name="displayName" required></label><label>帳號<input name="username" required></label><label>密碼<input name="password" type="password" autocomplete="new-password" required></label>
       <label>角色<select name="role"><option value="agent">客服</option><option value="admin">管理員</option></select></label><button type="submit">建立帳號</button></form></div>
     <div class="surface"><h2>帳號列表</h2><div id="userList" class="table-list"></div><button type="button" data-action="refreshUsers" class="secondary">重新整理帳號</button></div>
-    <div class="surface"><h2>優先調查申請</h2><div id="priorityApplicationList" class="table-list"></div><button type="button" data-action="refreshPriorityApplications" class="secondary">重新整理申請</button></div>`;
+    <div class="surface"><h2>截圖按鍵紀錄</h2><p class="muted">只記錄瀏覽器有交出來的截圖鍵，沒有截圖檔。手機截圖不會出現。</p><div id="screenshotLogList" class="table-list"></div><button type="button" data-action="refreshScreenshotLogs" class="secondary">重新整理截圖紀錄</button></div>`;
   root.appendChild(tools);
   $('#createCaseForm', tools).addEventListener('submit', (event) => {
     event.preventDefault();
@@ -1332,6 +1340,8 @@ async function renderAdminTools() {
   });
   $('[data-action="refreshUsers"]', tools).addEventListener('click', () => renderUserList().catch((error) => reportActionError(error, tools)));
   $('[data-action="refreshPriorityApplications"]', tools).addEventListener('click', () => renderPriorityApplicationList().catch((error) => reportActionError(error, tools)));
+  $('[data-action="refreshScreenshotLogs"]', tools).addEventListener('click', () => renderScreenshotLogs().catch((error) => reportActionError(error, tools)));
+  renderScreenshotLogs().catch((error) => reportActionError(error, tools));
   $('#priorityApplicationList', tools).addEventListener('click', (event) => {
     const button = event.target.closest?.('[data-priority-delete]');
     if (!button) return;

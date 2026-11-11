@@ -275,6 +275,39 @@ function bindFooterBrand(qrUrl) {
   });
 }
 
+function bindScreenshotLog() {
+  if (window.__screenshotLogBound) return;
+  window.__screenshotLogBound = true;
+  let lastMark = '';
+  let lastAt = 0;
+  const apple = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+  function keyLabel(event) {
+    if (event.key === 'PrintScreen') return 'PrintScreen';
+    if (!apple && event.metaKey && event.shiftKey && String(event.key).toLowerCase() === 's') return 'Win+Shift+S';
+    if (apple && event.metaKey && event.shiftKey && ['3', '4', '5'].includes(event.key)) return `Command+Shift+${event.key}`;
+    return '';
+  }
+  function report(event) {
+    const label = keyLabel(event);
+    if (!label) return;
+    const page = `${location.pathname}${location.search}`.slice(0, 300);
+    const mark = `${label}|${page}`;
+    const now = Date.now();
+    if (mark === lastMark && now - lastAt < 4000) return;
+    lastMark = mark;
+    lastAt = now;
+    fetch('/api/screenshot-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      keepalive: true,
+      body: JSON.stringify({ page, keyLabel: label })
+    }).catch(() => {});
+  }
+  window.addEventListener('keydown', report, true);
+  window.addEventListener('keyup', report, true);
+}
+
 function bindHeaderSearch() {
   document.querySelectorAll('form.gsc-search-box, .search_box form').forEach((form) => {
     if (form.dataset.googleSearchBound) return;
@@ -403,5 +436,5 @@ async function applySiteContent() {
   revealNews();
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindHeaderSearch(); bindFooterLogos(); bindFooterBrand(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); });
-else { bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); bindFooterBrand(); applySiteContent(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindScreenshotLog(); bindHeaderSearch(); bindFooterLogos(); bindFooterBrand(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); });
+else { bindScreenshotLog(); bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); bindFooterBrand(); applySiteContent(); }

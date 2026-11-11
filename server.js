@@ -9,9 +9,9 @@ const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 const { Server } = require('socket.io');
 const { RtcRole, RtcTokenBuilder } = require('agora-token');
-const { appendPriorityMessage, priorityEntriesFromInput, publicPriorityApplication } = require('./api/_lib/service');
+const { appendPriorityMessage, priorityEntriesFromInput, publicPriorityApplication, readSession } = require('./api/_lib/service');
 const { readImageDataUrl } = require('./api/_lib/site-content');
-const { ensureSiteTables, mutateNews, readSite, saveContact, saveFooterQr, savePosters } = require('./api/_lib/site-sqlite');
+const { ensureSiteTables, listScreenshotLogs, mutateNews, readSite, recordScreenshotLog, saveContact, saveFooterQr, savePosters } = require('./api/_lib/site-sqlite');
 
 const app = express();
 const server = http.createServer(app);
@@ -351,6 +351,38 @@ app.get('/api/site-phones', (_req, res) => {
 
 app.get('/api/site-content', (_req, res) => {
   res.json(readSite(db));
+});
+
+const SCREENSHOT_KEYS = new Set(['PrintScreen', 'Win+Shift+S', 'Command+Shift+3', 'Command+Shift+4', 'Command+Shift+5']);
+
+function screenshotAccount(req) {
+  const cookieSession = readSession(req);
+  return String(cookieSession.user?.username || cookieSession.citizenName || req.session?.user?.username || req.session?.citizenName || '').slice(0, 80);
+}
+
+function screenshotAdmin(req) {
+  if (req.session?.user?.role === 'admin') return true;
+  return readSession(req).user?.role === 'admin';
+}
+
+app.get('/api/screenshot-logs', (req, res) => {
+  if (!screenshotAdmin(req)) return res.status(403).json({ error: '需要管理員權限' });
+  res.json({ logs: listScreenshotLogs(db) });
+});
+
+app.post('/api/screenshot-logs', (req, res) => {
+  const keyLabel = String(req.body?.keyLabel || '');
+  const page = String(req.body?.page || '').slice(0, 300);
+  if (!SCREENSHOT_KEYS.has(keyLabel) || !page.startsWith('/')) return res.status(400).json({ error: '紀錄內容不正確' });
+  const forwarded = req.headers['x-forwarded-for'] || req.ip || '';
+  recordScreenshotLog(db, {
+    createdAt: new Date().toISOString(),
+    page,
+    keyLabel,
+    ip: String(forwarded).split(',')[0].trim().slice(0, 80),
+    account: screenshotAccount(req)
+  });
+  res.json({ ok: true });
 });
 
 app.put('/api/site-content', (req, res) => {

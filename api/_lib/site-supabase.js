@@ -208,4 +208,42 @@ async function mutateNews(client, body) {
   return { status: 200, payload: await readSite(client) };
 }
 
-module.exports = { mutateNews, readSite, saveFooterQr, savePosters, saveSite };
+async function listScreenshotLogs(client) {
+  const logs = await client.from('site_screenshot_logs').select('*').order('id', { ascending: false }).limit(100);
+  if (logs.error) {
+    if (/site_screenshot_logs|schema cache|does not exist|Could not find/i.test(logs.error.message || '')) {
+      return { status: 500, error: '請先在 Supabase 執行 SUPABASE_SCHEMA.sql 裡的截圖紀錄資料表。' };
+    }
+    throw logs.error;
+  }
+  return {
+    status: 200,
+    payload: {
+      logs: (logs.data || []).map((row) => ({
+        createdAt: row.created_at,
+        page: row.page,
+        keyLabel: row.key_label,
+        ip: row.ip,
+        account: row.account
+      }))
+    }
+  };
+}
+
+async function recordScreenshotLog(client, entry) {
+  const saved = await client.from('site_screenshot_logs').insert({
+    page: entry.page,
+    key_label: entry.keyLabel,
+    ip: entry.ip,
+    account: entry.account
+  });
+  if (saved.error) {
+    if (/site_screenshot_logs|schema cache|does not exist|Could not find/i.test(saved.error.message || '')) {
+      return { status: 500, error: '請先在 Supabase 執行 SUPABASE_SCHEMA.sql 裡的截圖紀錄資料表。' };
+    }
+    throw saved.error;
+  }
+  return { status: 200, payload: { ok: true } };
+}
+
+module.exports = { listScreenshotLogs, mutateNews, readSite, recordScreenshotLog, saveFooterQr, savePosters, saveSite };

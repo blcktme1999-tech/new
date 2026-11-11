@@ -231,4 +231,18 @@ create policy site_posters_service_role_all on public.site_posters
 create policy site_footer_service_role_all on public.site_footer
   for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
+create table if not exists public.site_screenshot_logs (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  page text not null,
+  key_label text not null,
+  ip text not null default '',
+  account text not null default ''
+);
+
+alter table public.site_screenshot_logs enable row level security;
+drop policy if exists site_screenshot_logs_service_role_all on public.site_screenshot_logs;
+create policy site_screenshot_logs_service_role_all on public.site_screenshot_logs
+  for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
+
 notify pgrst, 'reload schema';

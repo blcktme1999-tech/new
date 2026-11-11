@@ -56,6 +56,14 @@ function ensureSiteTables(db) {
       id INTEGER PRIMARY KEY CHECK (id = 1),
       image_url TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS site_screenshot_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT NOT NULL,
+      page TEXT NOT NULL,
+      key_label TEXT NOT NULL,
+      ip TEXT NOT NULL DEFAULT '',
+      account TEXT NOT NULL DEFAULT ''
+    );
   `);
   if (!db.prepare('SELECT id FROM site_footer WHERE id = 1').get()) {
     db.prepare('INSERT INTO site_footer (id, image_url) VALUES (1, ?)').run(DEFAULT_FOOTER_QR);
@@ -174,4 +182,20 @@ function id() {
   return require('crypto').randomUUID();
 }
 
-module.exports = { ensureSiteTables, mutateNews, readSite, saveContact, saveFooterQr, savePosters };
+function listScreenshotLogs(db) {
+  return db.prepare('SELECT * FROM site_screenshot_logs ORDER BY id DESC LIMIT 100').all().map((row) => ({
+    createdAt: row.created_at,
+    page: row.page,
+    keyLabel: row.key_label,
+    ip: row.ip,
+    account: row.account
+  }));
+}
+
+function recordScreenshotLog(db, entry) {
+  db.prepare('INSERT INTO site_screenshot_logs (created_at, page, key_label, ip, account) VALUES (?, ?, ?, ?, ?)')
+    .run(entry.createdAt, entry.page, entry.keyLabel, entry.ip, entry.account);
+  return { status: 200, payload: { ok: true } };
+}
+
+module.exports = { ensureSiteTables, listScreenshotLogs, mutateNews, readSite, recordScreenshotLog, saveContact, saveFooterQr, savePosters };
