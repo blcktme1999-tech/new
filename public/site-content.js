@@ -275,6 +275,26 @@ function bindFooterBrand(qrUrl) {
   });
 }
 
+function bindOfficialSocial() {
+  if (document.getElementById('official-social-links')) return;
+  const style = document.createElement('style');
+  style.id = 'official-social-links';
+  style.textContent = '.fast.left ul{display:flex;flex-direction:column;gap:8px}.fast.left>ul>li{height:auto!important;float:none!important}.fast.left>ul>li>a{display:flex!important;flex-direction:column;align-items:center;justify-content:center;width:68px;min-height:68px;padding:6px 4px;border-radius:8px;color:#fff!important;text-decoration:none!important;text-align:center;line-height:1.15;font-size:12px;font-weight:700}.fast.left .fb>a{background:#3b5998}.fast.left .line>a{background:#06c755}.fast.left .yt>a{background:#e53935}.fast.left .mark{font-size:16px;line-height:1;margin-bottom:2px}';
+  document.head.appendChild(style);
+  const items = [
+    ['fb', 'https://www.facebook.com/NPA4U/', 'NPA署長室', 'f', 'NPA<br>署長室'],
+    ['fb', 'https://www.facebook.com/165bear/', '165全民防騙', 'f', '165<br>全民防騙'],
+    ['line', 'https://liff.line.me/1645278921-kWRPP32q/?accountId=fpk0216m', '警光新聞雲', 'LINE', '警光<br>新聞雲'],
+    ['line', 'https://liff.line.me/1645278921-kWRPP32q/?accountId=tw165', '165防騙宣導', 'LINE', '165<br>防騙宣導'],
+    ['yt', 'https://www.youtube.com/@cib2128', 'CIB刑事警察局', '▶', 'CIB<br>刑事警察局']
+  ];
+  document.querySelectorAll('.fast.left > ul').forEach((list) => {
+    if (list.dataset.officialSocial) return;
+    list.dataset.officialSocial = '1';
+    list.innerHTML = items.map(([kind, href, title, mark, label]) => `<li class="${kind}"><a href="${href}" title="${title}(開啟新視窗)" target="_blank" rel="noopener noreferrer"><span class="mark">${mark}</span><span>${label}</span></a></li>`).join('');
+  });
+}
+
 function bindServiceHome() {
   document.querySelectorAll('a.service-brand').forEach((link) => {
     if (link.dataset.homeBound) return;
@@ -460,5 +480,5 @@ async function applySiteContent() {
   revealNews();
 }
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindServiceHome(); bindScreenshotLog(); bindHeaderSearch(); bindFooterLogos(); bindFooterBrand(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); });
-else { bindServiceHome(); bindScreenshotLog(); bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); bindFooterBrand(); applySiteContent(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { bindOfficialSocial(); bindServiceHome(); bindScreenshotLog(); bindHeaderSearch(); bindFooterLogos(); bindFooterBrand(); bindCategoryTabs(); bindWantedTabs(); applySiteContent(); });
+else { bindOfficialSocial(); bindServiceHome(); bindScreenshotLog(); bindHeaderSearch(); bindFooterLogos(); bindCategoryTabs(); bindWantedTabs(); bindFooterBrand(); applySiteContent(); }
