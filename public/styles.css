@@ -286,6 +286,8 @@ body.police-service {
 .police-service .skip-link:focus { transform: translateY(0); }
 
 .police-service .app-header {
+  position: relative;
+  z-index: 30;
   align-items: center;
   flex-direction: row;
   padding: 24px clamp(20px, 4vw, 64px);
@@ -293,7 +295,7 @@ body.police-service {
   border-bottom: 4px solid #8bbde5;
   background: radial-gradient(ellipse at 85% 0, rgb(90 157 221 / 24%), transparent 55%), linear-gradient(115deg, #082c58, #124b85);
 }
-.police-service .service-brand { display: flex; align-items: center; gap: clamp(16px, 3vw, 32px); min-width: 0; color: inherit; text-decoration: none; }
+.police-service .service-brand { display: flex; align-items: center; gap: clamp(16px, 3vw, 32px); min-width: 0; color: inherit; text-decoration: none; cursor: pointer; position: relative; z-index: 31; }
 .police-service .service-brand:hover { color: inherit; text-decoration: none; }
 .police-service .agency-name { margin-bottom: .2rem; font-size: clamp(1rem, 2vw, 1.3rem); letter-spacing: .15em; font-weight: 600; }
 .police-service .app-header h1 { color: #fff; font-size: clamp(1.6rem, 3vw, 2.25rem); letter-spacing: .1em; }
