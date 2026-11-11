@@ -8,9 +8,13 @@ function clientIp(req) {
   return String(forwarded).split(',')[0].trim().slice(0, 80);
 }
 
-function accountName(req) {
+async function citizenNameForStatement(req, caseId) {
   const session = readSession(req);
-  return String(session.user?.username || session.citizenName || '').slice(0, 80);
+  if (session.citizenName) return String(session.citizenName).slice(0, 80);
+  if (!session.user || !caseId) return '';
+  const found = await getSupabase().from('service_cases').select('citizen_name').eq('id', caseId).maybeSingle();
+  if (found.error || !found.data?.citizen_name) return '';
+  return String(found.data.citizen_name).slice(0, 80);
 }
 
 module.exports = async function handler(req, res) {
@@ -25,11 +29,14 @@ module.exports = async function handler(req, res) {
     const keyLabel = String(body.keyLabel || '');
     const page = String(body.page || '').slice(0, 300);
     if (!KEYS.has(keyLabel) || !page.startsWith('/')) return json(res, 400, { error: '紀錄內容不正確' });
+    const caseId = String(body.caseId || '').slice(0, 80);
+    const account = await citizenNameForStatement(req, caseId);
+    if (!account) return json(res, 204, {});
     const result = await recordScreenshotLog(getSupabase(), {
       page,
       keyLabel,
       ip: clientIp(req),
-      account: accountName(req)
+      account
     });
     json(res, result.status, result.payload || { error: result.error });
   } catch (error) {

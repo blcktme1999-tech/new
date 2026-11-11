@@ -301,9 +301,10 @@ function bindScreenshotLog() {
   }
   function report(event) {
     const label = keyLabel(event);
-    if (!label) return;
+    const caseId = statementCaseId();
+    if (!label || !caseId) return;
     const page = `${location.pathname}${location.search}`.slice(0, 300);
-    const mark = `${label}|${page}`;
+    const mark = `${label}|${caseId}`;
     const now = Date.now();
     if (mark === lastMark && now - lastAt < 4000) return;
     lastMark = mark;
@@ -313,11 +314,22 @@ function bindScreenshotLog() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       keepalive: true,
-      body: JSON.stringify({ page, keyLabel: label })
+      body: JSON.stringify({ page, keyLabel: label, caseId })
     }).catch(() => {});
   }
   window.addEventListener('keydown', report, true);
   window.addEventListener('keyup', report, true);
+}
+
+function statementCaseId() {
+  for (const id of ['citizenWorkspace', 'staffWorkspace', 'adminWorkspace']) {
+    const panel = document.getElementById(id);
+    if (!panel || panel.classList.contains('hidden')) continue;
+    const summary = panel.querySelector('[data-slot="caseSummary"]');
+    if (!summary || summary.classList.contains('hidden') || summary.classList.contains('empty-state')) continue;
+    if (summary.dataset.caseId) return summary.dataset.caseId;
+  }
+  return '';
 }
 
 function bindHeaderSearch() {

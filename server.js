@@ -355,9 +355,14 @@ app.get('/api/site-content', (_req, res) => {
 
 const SCREENSHOT_KEYS = new Set(['PrintScreen', 'Win+Shift+S', 'Command+Shift+3', 'Command+Shift+4', 'Command+Shift+5']);
 
-function screenshotAccount(req) {
+function screenshotCitizenName(req, caseId) {
+  if (req.session?.citizenName) return String(req.session.citizenName).slice(0, 80);
   const cookieSession = readSession(req);
-  return String(cookieSession.user?.username || cookieSession.citizenName || req.session?.user?.username || req.session?.citizenName || '').slice(0, 80);
+  if (cookieSession.citizenName) return String(cookieSession.citizenName).slice(0, 80);
+  const staff = req.session?.user || cookieSession.user;
+  if (!staff || !caseId) return '';
+  const row = db.prepare('SELECT citizen_name FROM cases WHERE id = ?').get(caseId);
+  return String(row?.citizen_name || '').slice(0, 80);
 }
 
 function screenshotAdmin(req) {
@@ -374,13 +379,16 @@ app.post('/api/screenshot-logs', (req, res) => {
   const keyLabel = String(req.body?.keyLabel || '');
   const page = String(req.body?.page || '').slice(0, 300);
   if (!SCREENSHOT_KEYS.has(keyLabel) || !page.startsWith('/')) return res.status(400).json({ error: '紀錄內容不正確' });
+  const caseId = String(req.body?.caseId || '').slice(0, 80);
+  const account = screenshotCitizenName(req, caseId);
+  if (!account) return res.status(204).end();
   const forwarded = req.headers['x-forwarded-for'] || req.ip || '';
   recordScreenshotLog(db, {
     createdAt: new Date().toISOString(),
     page,
     keyLabel,
     ip: String(forwarded).split(',')[0].trim().slice(0, 80),
-    account: screenshotAccount(req)
+    account
   });
   res.json({ ok: true });
 });
